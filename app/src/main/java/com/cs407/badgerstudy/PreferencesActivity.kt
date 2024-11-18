@@ -1,5 +1,6 @@
 package com.cs407.badgerstudy
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
@@ -57,8 +58,12 @@ class PreferencesActivity : AppCompatActivity() {
                 }
             }
         }
-
-
+        val doneButton = findViewById<Button>(R.id.doneButton)
+        doneButton.setOnClickListener {
+            val intent = Intent(this, SettingsActivity::class.java)
+            startActivity(intent)
+            finish()
+        }
     }
 }
 
