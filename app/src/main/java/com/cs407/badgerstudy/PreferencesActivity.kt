@@ -60,7 +60,7 @@ class PreferencesActivity : AppCompatActivity() {
         }
         val doneButton = findViewById<Button>(R.id.doneButton)
         doneButton.setOnClickListener {
-            val intent = Intent(this, SettingsActivity::class.java)
+            val intent = Intent(this, MapActivity::class.java)
             startActivity(intent)
             finish()
         }
