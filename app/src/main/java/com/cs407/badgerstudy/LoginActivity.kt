@@ -7,19 +7,12 @@ import android.widget.Button
 import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.launch
 
 class LoginActivity : AppCompatActivity() {
-
-    private lateinit var database: UserDatabase // Reference to the Room database
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
-
-        // Initialize the database
-        database = UserDatabase.getDatabase(this)
 
         // Define UI elements
         val usernameEditText = findViewById<EditText>(R.id.usernameEditText)
@@ -59,23 +52,14 @@ class LoginActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            // Validate credentials using the Room database
-            lifecycleScope.launch {
-                val user = database.userDao().getUserByUsername(username)
-                if (user != null && user.password == password) {
-                    // Login successful, navigate to PreferencesActivity
-                    val intent = Intent(this@LoginActivity, PreferencesActivity::class.java)
-                    intent.putExtra("username", username) // Pass username to the next activity
-                    startActivity(intent)
-                    finish()
-                } else {
-                    // Invalid credentials
-                    Toast.makeText(this@LoginActivity, "Invalid credentials", Toast.LENGTH_SHORT).show()
-                }
-            }
+            // Simulate login success for demonstration
+            val intent = Intent(this@LoginActivity, PreferencesActivity::class.java)
+            intent.putExtra("username", username) // Pass username to the next activity
+            startActivity(intent)
+            finish()
         }
 
-        // Handle save button click (save new user)
+        // Handle save button click (simulated save functionality)
         saveButton.setOnClickListener {
             val username = usernameEditText.text.toString().trim()
             val password = passwordEditText.text.toString().trim()
@@ -85,18 +69,11 @@ class LoginActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            lifecycleScope.launch {
-                val existingUser = database.userDao().getUserByUsername(username)
-                if (existingUser == null) {
-                    // Save the new user
-                    database.userDao().insertUser(User(username = username, password = password))
-                    Toast.makeText(this@LoginActivity, "User saved successfully!", Toast.LENGTH_SHORT).show()
-                } else {
-                    Toast.makeText(this@LoginActivity, "Username already exists!", Toast.LENGTH_SHORT).show()
-                }
-            }
+            // Simulate saving the user for demonstration
+            Toast.makeText(this@LoginActivity, "User saved successfully!", Toast.LENGTH_SHORT).show()
         }
     }
 }
+
 
 
