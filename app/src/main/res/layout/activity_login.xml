@@ -4,28 +4,50 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="16dp"
-    android:gravity="center">
+    android:gravity="center"
+    android:background="@color/fadedWhite">
 
+    <!-- Username Input -->
     <EditText
         android:id="@+id/usernameEditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Username"
-        android:inputType="text" />
+        android:inputType="textPersonName"
+        android:padding="12dp"
+        android:background="@drawable/edit_text_background"
+        android:textColor="@color/black"
+        android:layout_marginBottom="12dp" />
 
+    <!-- Password Input -->
     <EditText
         android:id="@+id/passwordEditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Password"
         android:inputType="textPassword"
-        android:layout_marginTop="8dp"/>
+        android:padding="12dp"
+        android:background="@drawable/edit_text_background"
+        android:textColor="@color/black"
+        android:layout_marginBottom="16dp" />
 
+    <!-- Login Button -->
     <Button
         android:id="@+id/loginButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Login"
-        android:layout_marginTop="16dp"/>
+        android:layout_marginBottom="12dp"
+        android:backgroundTint="@color/fadedRed"
+        android:textColor="@color/fadedWhite" />
+
+    <!-- Save User Button -->
+    <Button
+        android:id="@+id/saveButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Save User"
+        android:backgroundTint="@color/fadedRed"
+        android:textColor="@color/fadedWhite" />
 
 </LinearLayout>
