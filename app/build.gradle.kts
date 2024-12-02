@@ -1,7 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    id("kotlin-kapt") // Required for Room annotation processing
+    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin") version "2.0.1"
 }
 
 android {
@@ -10,11 +10,15 @@ android {
 
     defaultConfig {
         applicationId = "com.cs407.badgerstudy"
-        minSdk = 26 // Minimum SDK version for Room compatibility
+        minSdk = 34
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
+
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Set up manifest placeholders for API key substitution
+        manifestPlaceholders["MAPS_API_KEY"] = project.findProperty("MAPS_API_KEY") ?: ""
     }
 
     buildTypes {
@@ -38,42 +42,18 @@ android {
 }
 
 dependencies {
-    // Core Android libraries
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
+    implementation(libs.places)
 
-    // Unit testing
     testImplementation(libs.junit)
-
-    // Android testing
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
-    // Room dependencies
-    implementation("androidx.room:room-runtime:2.5.2") // Room runtime
-    kapt("androidx.room:room-compiler:2.5.2") // Room annotation processor
-
-    // Kotlin Coroutines for Android
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
-
-    // Logging interceptor (optional for debugging Room queries)
-    implementation("com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.11")
-
-    implementation("com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.11")
+    implementation("com.google.android.gms:play-services-maps:19.0.0")
+    implementation("com.google.maps.android:android-maps-utils:2.3.0")
+    implementation("com.squareup.okhttp3:okhttp:4.9.3")
 }
-
-
-kapt {
-    correctErrorTypes = true
-    arguments {
-        arg("room.schemaLocation", "$projectDir/schemas") // Export Room schemas
-        arg("room.incremental", "true") // Enable incremental annotation processing
-    }
-}
-
-
-
