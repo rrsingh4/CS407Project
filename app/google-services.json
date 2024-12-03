@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "987557582974",
+    "project_id": "badgerstudy",
+    "storage_bucket": "badgerstudy.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:987557582974:android:6f355d626dd57a6da8602f",
+        "android_client_info": {
+          "package_name": "com.cs407.badgerstudy"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD8EOVPr-nC7ELDVdRlmof-lReH97Nbo7o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

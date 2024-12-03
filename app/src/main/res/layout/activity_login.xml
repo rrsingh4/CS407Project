@@ -11,24 +11,22 @@
         android:id="@+id/usernameEditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
         android:hint="Username"
         android:inputType="textPersonName"
         android:padding="12dp"
-        android:background="@drawable/edit_text_background"
-        android:textColor="@color/black"
-        android:layout_marginBottom="12dp" />
+        android:textColor="@color/black" />
 
     <!-- Password Input -->
     <EditText
         android:id="@+id/passwordEditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
         android:hint="Password"
         android:inputType="textPassword"
         android:padding="12dp"
-        android:background="@drawable/edit_text_background"
-        android:textColor="@color/black"
-        android:layout_marginBottom="16dp" />
+        android:textColor="@color/black" />
 
     <!-- Login Button -->
     <Button
@@ -42,11 +40,11 @@
 
     <!-- Save User Button -->
     <Button
-        android:id="@+id/saveButton"
+        android:id="@+id/createUserButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Save User"
         android:backgroundTint="@color/fadedRed"
+        android:text="Create New User"
         android:textColor="@color/fadedWhite" />
 
 </LinearLayout>

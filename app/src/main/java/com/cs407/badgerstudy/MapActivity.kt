@@ -18,8 +18,19 @@ import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener
 import com.google.android.libraries.places.api.model.Place
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.FirebaseDatabase
 
 class MapActivity : AppCompatActivity(), OnMapReadyCallback {
+
+    //CREATES a database instance to grab items from
+    private val database = FirebaseDatabase.getInstance()
+
+    //GETS the current user's id for authentication grabs
+    private val currUser = FirebaseAuth.getInstance().currentUser?.uid
+    //CREATES a reference or grabs reference for user preferences
+    private val userPreferencesRef = database.getReference("users/$currUser/preferences")
+
 
     private lateinit var mMap: GoogleMap
     private lateinit var poiInfoBlock: View
@@ -33,6 +44,13 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_map)
+
+        //TODO remove this, made to test that logging in checked the right user in. (It does!)
+        Toast.makeText(
+            this,
+            "Login Successful! Welcome ${currUser}",
+            Toast.LENGTH_SHORT
+        ).show()
 
         if (!Places.isInitialized()) {
             Places.initialize(applicationContext, "AIzaSyB2-kJTZNlA26rq71Pa1aRkTzAtLioKtpo")

@@ -6,15 +6,26 @@ import android.widget.SeekBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.FirebaseDatabase
 
 class SettingsActivity : AppCompatActivity() {
+
+    //CREATES a database instance to grab items from
+    private val database = FirebaseDatabase.getInstance()
+
+    //GETS the current user's id for authentication grabs
+    private val currUser = FirebaseAuth.getInstance().currentUser?.uid
+    //CREATES a reference or grabs reference for user preferences
+    private val userPreferencesRef = database.getReference("users/$currUser/preferences")
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
 
         // Save Button
-        val saveButton = findViewById<Button>(R.id.saveButton)
+        val saveButton = findViewById<Button>(R.id.createUserButton)
         saveButton.setOnClickListener {
             Toast.makeText(this, "Selections have been saved", Toast.LENGTH_SHORT).show()
         }
