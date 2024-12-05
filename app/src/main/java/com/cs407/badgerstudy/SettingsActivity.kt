@@ -8,107 +8,116 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
+import com.google.android.material.bottomnavigation.BottomNavigationView
+import android.content.Intent
+import android.util.Log
+import androidx.appcompat.widget.Toolbar
 
 class SettingsActivity : AppCompatActivity() {
 
-    //CREATES a database instance to grab items from
+    private lateinit var auth: FirebaseAuth
     private val database = FirebaseDatabase.getInstance()
-
-    //GETS the current user's id for authentication grabs
     private val currUser = FirebaseAuth.getInstance().currentUser?.uid
-    //CREATES a reference or grabs reference for user preferences
     private val userPreferencesRef = database.getReference("users/$currUser/preferences")
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
 
-        // Save Button
-        val saveButton = findViewById<Button>(R.id.createUserButton)
-        saveButton.setOnClickListener {
-            Toast.makeText(this, "Selections have been saved", Toast.LENGTH_SHORT).show()
+        auth = FirebaseAuth.getInstance()
+
+        // Logout Button Logic
+        val logoutButton = findViewById<Button>(R.id.logout_button)
+        logoutButton.setOnClickListener {
+            auth.signOut()
+            Toast.makeText(this, "Logged out successfully!", Toast.LENGTH_SHORT).show()
+
+            val intent = Intent(this, LoginActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
+            finish()
         }
 
-        // Function to toggle button selection state
-        fun toggleButton(button: Button) {
-            val currentColor = button.backgroundTintList?.defaultColor
-            val selectedColor = ContextCompat.getColor(this, R.color.pressedRed)
-            val unselectedColor = ContextCompat.getColor(this, R.color.fadedRed)
+        val buttonIds = arrayOf(
+            R.id.quiet_study_button,
+            R.id.good_view_button,
+            R.id.collab_friendly_button,
+            R.id.morning_button,
+            R.id.afternoon_button,
+            R.id.night_button,
+            R.id.vending_machine_button,
+            R.id.cafes_button,
+            R.id.food_truck_button,
+            R.id.private_room_button,
+            R.id.big_tables_button,
+            R.id.small_tables_button
+        )
 
-            if (currentColor == selectedColor) {
-                button.backgroundTintList = ContextCompat.getColorStateList(this, R.color.fadedRed)
-            } else {
-                button.backgroundTintList = ContextCompat.getColorStateList(this, R.color.pressedRed)
+        val buttons = buttonIds.associateWith { findViewById<Button>(it) }
+
+        // Load saved preferences and set default states
+        userPreferencesRef.get().addOnSuccessListener { snapshot ->
+            val preferences = snapshot.value as? Map<String, Boolean> ?: emptyMap()
+            buttons.forEach { (id, button) ->
+                val isSelected = preferences[button.text.toString()] == true
+                button.backgroundTintList = ContextCompat.getColorStateList(
+                    this, if (isSelected) R.color.pressedRed else R.color.fadedRed
+                )
             }
         }
 
-        // Environment Buttons (Default: Quiet Study)
-        val quietStudyButton = findViewById<Button>(R.id.quiet_study_button)
-        val goodViewButton = findViewById<Button>(R.id.good_view_button)
-        val collabFriendlyButton = findViewById<Button>(R.id.collab_friendly_button)
+        // Set listeners for buttons to toggle their state
+        buttons.forEach { (_, button) ->
+            button.setOnClickListener {
+                val isSelected = button.backgroundTintList == ContextCompat.getColorStateList(this, R.color.pressedRed)
+                button.backgroundTintList = ContextCompat.getColorStateList(
+                    this, if (!isSelected) R.color.pressedRed else R.color.fadedRed
+                )
+                userPreferencesRef.child("${button.text}").setValue(!isSelected)
+            }
+        }
 
-        quietStudyButton.backgroundTintList = ContextCompat.getColorStateList(this, R.color.pressedRed) // Default selected
-        goodViewButton.backgroundTintList = ContextCompat.getColorStateList(this, R.color.fadedRed)
-        collabFriendlyButton.backgroundTintList = ContextCompat.getColorStateList(this, R.color.fadedRed)
-
-        quietStudyButton.setOnClickListener { toggleButton(it as Button) }
-        goodViewButton.setOnClickListener { toggleButton(it as Button) }
-        collabFriendlyButton.setOnClickListener { toggleButton(it as Button) }
-
-        // Study Time Buttons (Default: Morning)
-        val morningButton = findViewById<Button>(R.id.morning_button)
-        val afternoonButton = findViewById<Button>(R.id.afternoon_button)
-        val nightButton = findViewById<Button>(R.id.night_button)
-
-        morningButton.backgroundTintList = ContextCompat.getColorStateList(this, R.color.pressedRed) // Default selected
-        afternoonButton.backgroundTintList = ContextCompat.getColorStateList(this, R.color.fadedRed)
-        nightButton.backgroundTintList = ContextCompat.getColorStateList(this, R.color.fadedRed)
-
-        morningButton.setOnClickListener { toggleButton(it as Button) }
-        afternoonButton.setOnClickListener { toggleButton(it as Button) }
-        nightButton.setOnClickListener { toggleButton(it as Button) }
-
-        // Food Nearby Buttons (Default: Vending Machines)
-        val vendingMachineButton = findViewById<Button>(R.id.vending_machine_button)
-        val cafesButton = findViewById<Button>(R.id.cafes_button)
-        val foodTruckButton = findViewById<Button>(R.id.food_truck_button)
-
-        vendingMachineButton.backgroundTintList = ContextCompat.getColorStateList(this, R.color.pressedRed) // Default selected
-        cafesButton.backgroundTintList = ContextCompat.getColorStateList(this, R.color.fadedRed)
-        foodTruckButton.backgroundTintList = ContextCompat.getColorStateList(this, R.color.fadedRed)
-
-        vendingMachineButton.setOnClickListener { toggleButton(it as Button) }
-        cafesButton.setOnClickListener { toggleButton(it as Button) }
-        foodTruckButton.setOnClickListener { toggleButton(it as Button) }
-
-        // Room Type Buttons (Default: Private Room)
-        val privateRoomButton = findViewById<Button>(R.id.private_room_button)
-        val bigTablesButton = findViewById<Button>(R.id.big_tables_button)
-        val smallTablesButton = findViewById<Button>(R.id.small_tables_button)
-
-        privateRoomButton.backgroundTintList = ContextCompat.getColorStateList(this, R.color.pressedRed) // Default selected
-        bigTablesButton.backgroundTintList = ContextCompat.getColorStateList(this, R.color.fadedRed)
-        smallTablesButton.backgroundTintList = ContextCompat.getColorStateList(this, R.color.fadedRed)
-
-        privateRoomButton.setOnClickListener { toggleButton(it as Button) }
-        bigTablesButton.setOnClickListener { toggleButton(it as Button) }
-        smallTablesButton.setOnClickListener { toggleButton(it as Button) }
-
-        // Mile Radius SeekBar (Dummy Data)
+        // SeekBar for mile radius preference
         val mileRadiusSeekBar = findViewById<SeekBar>(R.id.seekBar2)
         mileRadiusSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                // Handle progress changes (you can show progress if required)
+                // Save the progress to Firebase
+                userPreferencesRef.child("mileRadius").setValue(progress)
             }
 
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {
-                // Handle start of interaction
-            }
-
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                // Handle end of interaction
-            }
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
+
+        // BottomNavigationView Setup
+        val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottom_navigation)
+        bottomNavigationView?.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.nav_home -> {
+                    val intent = Intent(this, MapActivity::class.java)
+                    startActivity(intent)
+                    true
+                }
+                R.id.nav_favorites -> {
+                    Toast.makeText(this, "Favorites clicked!", Toast.LENGTH_SHORT).show()
+                    true
+                }
+                R.id.nav_settings -> {
+                    // Stay on current activity
+                    true
+                }
+                else -> false
+            }
+        } ?: Log.e("SettingsActivity", "BottomNavigationView is null")
+
+        // Save Button Setup
+        val saveButton = findViewById<Button>(R.id.createUserButton)
+        if (saveButton != null) {
+            saveButton.setOnClickListener {
+                Toast.makeText(this, "Your new preferences are saved!", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            Log.e("SettingsActivity", "Save Button is null")
+        }
     }
 }

@@ -85,6 +85,7 @@ class PreferencesActivity : AppCompatActivity() {
                 print("clicked!")
                 //toggle the button's clicked state
                 buttonStates[id] = !buttonStates[id]!!
+                val isSelected = buttonStates[id] == true
 
                 //change the button color and text color based on the state
 
