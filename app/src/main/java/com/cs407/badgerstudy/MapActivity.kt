@@ -20,6 +20,8 @@ import com.google.android.libraries.places.widget.listener.PlaceSelectionListene
 import com.google.android.libraries.places.api.model.Place
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
+import com.google.android.material.bottomnavigation.BottomNavigationView
+import android.content.Intent
 
 class MapActivity : AppCompatActivity(), OnMapReadyCallback {
 
@@ -63,6 +65,28 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
         poiNameTextView = findViewById(R.id.poi_name)
         poiInfoBlock.visibility = View.GONE
         setupSearchAutocomplete()
+
+        // Handle navigation actions
+        val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottom_navigation)
+        bottomNavigationView.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.nav_home -> {
+                    // Stay on this activity
+                    true
+                }
+                R.id.nav_favorites -> {
+                    // Handle navigation to favorites (if applicable)
+                    true
+                }
+                R.id.nav_settings -> {
+                    // Navigate to SettingsActivity
+                    val intent = Intent(this, SettingsActivity::class.java)
+                    startActivity(intent)
+                    true
+                }
+                else -> false
+            }
+        }
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
