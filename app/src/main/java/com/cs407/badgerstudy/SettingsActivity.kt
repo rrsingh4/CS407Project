@@ -11,6 +11,7 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import android.content.Intent
 import android.util.Log
+import android.widget.TextView
 import androidx.appcompat.widget.Toolbar
 
 class SettingsActivity : AppCompatActivity() {
@@ -76,11 +77,15 @@ class SettingsActivity : AppCompatActivity() {
                 userPreferencesRef.child("${button.text}").setValue(!isSelected)
             }
         }
+        //text to show miles radius
+        val seekBarText = findViewById<TextView>(R.id.progressNum)
 
         // SeekBar for mile radius preference
         val mileRadiusSeekBar = findViewById<SeekBar>(R.id.seekBar2)
         mileRadiusSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                // Save the progress to Firebase
+                seekBarText.text = "$progress miles"
                 // Save the progress to Firebase
                 userPreferencesRef.child("mileRadius").setValue(progress)
             }

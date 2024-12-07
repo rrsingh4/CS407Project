@@ -116,6 +116,19 @@
                 android:text="Mile Radius"
                 android:textSize="20sp" />
 
+            <TextView
+                android:id="@+id/progressNum"
+                android:layout_width="140dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:layout_weight="1"
+                android:fontFamily="sans-serif-light"
+                android:lineSpacingExtra="16sp"
+                android:text="Miles: "
+                android:textSize="20sp"
+                android:typeface="sans"
+                app:layout_constraintBottom_toTopOf="@id/seekBar2" />
+
             <SeekBar
                 android:id="@+id/seekBar2"
                 android:layout_width="match_parent"

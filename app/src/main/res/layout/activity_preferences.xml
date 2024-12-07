@@ -1,323 +1,301 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-<LinearLayout
+<androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/gridLayout"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical">
-
-<LinearLayout
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    tools:context=".SettingsActivity">
 
-    <TextView
-        android:id="@+id/preferences_text"
-        android:layout_width="wrap_content"
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/settings_toolbar"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:fontFamily="serif"
-        android:lineSpacingExtra="8sp"
-        android:text="PREFERENCES"
-        android:textColor="#FF3300"
-        android:textSize="34sp"
-        android:textStyle="bold"
-        android:typeface="serif" />
+        android:background="@color/pressedRed"
+        android:elevation="4dp"
+        app:title="Preferences"
+        app:titleTextColor="@android:color/white"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="horizontal">
-
-        <TextView
-            android:id="@+id/environment_text"
-            android:layout_width="140dp"
+        <Button
+            android:id="@+id/logout_button"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:layout_marginBottom="10dp"
-            android:fontFamily="sans-serif-light"
-            android:lineSpacingExtra="16sp"
-            android:text="Environment"
-            android:textSize="20sp"
-            android:typeface="sans" />
+            android:text="Logout"
+            android:layout_gravity="end"
+            android:background="@android:color/transparent"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:padding="8dp" />
+    </androidx.appcompat.widget.Toolbar>
 
-    </LinearLayout>
-
-    <LinearLayout
+    <!-- Scrollable content area -->
+    <ScrollView
+        android:id="@+id/settings_content"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/settings_toolbar"
+        app:layout_constraintBottom_toTopOf="@id/createUserButton">
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="12dp">
+
+            <!-- Existing settings content -->
+            <!--            <TextView-->
+            <!--                android:id="@+id/settings_header"-->
+            <!--                android:layout_width="wrap_content"-->
+            <!--                android:layout_height="wrap_content"-->
+            <!--                android:text="Hello Bucky!"-->
+            <!--                android:textSize="30sp"-->
+            <!--                android:textColor="#FF3300"-->
+            <!--                android:textStyle="bold"-->
+            <!--                android:gravity="center"-->
+            <!--                android:layout_gravity="center_horizontal"-->
+            <!--                android:layout_marginBottom="16dp" />-->
+
+            <!-- Environment Section -->
+            <TextView
+                android:id="@+id/environment_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:fontFamily="sans-serif-light"
+                android:text="Environment"
+                android:textSize="20sp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical">
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginBottom="16dp">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="horizontal">
-
-                    <Button
-                        app:backgroundTint="#FF3300"
-                        android:id="@+id/quiet_study_button"
-                        android:layout_width="131dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginLeft="15dp"
-                        android:shadowColor="#FF3300"
-                        android:text="Quiet Study"
-                        android:textSize="15dp"
-                        app:cornerRadius="40dp"
-                        app:strokeColor="#FF3300" />
-
-                    <Button
-                        app:backgroundTint="#FF3300"
-
-                        android:id="@+id/good_view_button"
-                        android:layout_width="wrap_content"
-                        android:layout_height="80dp"
-                        android:text="Good View"
-                        app:cornerRadius="40dp" />
-
-                    <Button
-                        app:backgroundTint="#FF3300"
-
-                        android:id="@+id/collab_friendly_button"
-                        android:layout_width="134dp"
-                        android:layout_height="80dp"
-                        android:text="Collab Friendly"
-                        android:textSize="10dp"
-                        app:cornerRadius="40dp" />
-                </LinearLayout>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/mile_radius"
-                    android:layout_width="140dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
+                <Button
+                    android:id="@+id/quiet_study_button"
+                    android:layout_width="0dp"
+                    android:layout_height="60dp"
                     android:layout_weight="1"
-                    android:fontFamily="sans-serif-light"
-                    android:lineSpacingExtra="16sp"
-                    android:text="Mile Radius"
-                    android:textSize="20sp"
-                    android:typeface="sans" />
+                    android:layout_margin="6dp"
+                    android:text="Quiet Study"
+                    android:textSize="14sp"
+                    app:backgroundTint="#FF3300" />
+
+                <Button
+                    android:id="@+id/good_view_button"
+                    android:layout_width="0dp"
+                    android:layout_height="60dp"
+                    android:layout_weight="1"
+                    android:layout_margin="6dp"
+                    android:text="Good View"
+                    android:textSize="14sp"
+                    app:backgroundTint="#FF3300" />
+
+                <Button
+                    android:id="@+id/collab_friendly_button"
+                    android:layout_width="0dp"
+                    android:layout_height="60dp"
+                    android:layout_weight="1"
+                    android:layout_margin="6dp"
+                    android:text="Collab Friendly"
+                    android:textSize="12sp"
+                    app:backgroundTint="#FF3300" />
             </LinearLayout>
+
+            <!-- Mile Radius Section -->
+            <TextView
+                android:id="@+id/mile_radius_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:fontFamily="sans-serif-light"
+                android:text="Mile Radius"
+                android:textSize="20sp" />
+
+            <TextView
+                android:id="@+id/progressNum"
+                android:layout_width="140dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:layout_weight="1"
+                android:fontFamily="sans-serif-light"
+                android:lineSpacingExtra="16sp"
+                android:text="Miles: "
+                android:textSize="20sp"
+                android:typeface="sans"
+                app:layout_constraintBottom_toTopOf="@id/seekBar2" />
 
             <SeekBar
                 android:id="@+id/seekBar2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp" />
+                android:layout_marginBottom="16dp"
+                android:max="20"/>
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="horizontal"/>
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="horizontal"/>
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal">
-
+            <!-- Study Time Section -->
             <TextView
-                android:id="@+id/study_time"
-                android:layout_width="140dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:layout_weight="1"
-                android:fontFamily="sans-serif-light"
-                android:lineSpacingExtra="16sp"
-                android:text="Study Time"
-                android:textSize="20sp"
-                android:typeface="sans" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/morning_button"
-
-                android:layout_width="131dp"
-                android:layout_height="match_parent"
-                android:layout_marginLeft="15dp"
-                android:layout_marginTop="10dp"
-                android:text="Morning"
-                android:textSize="15dp"
-                app:backgroundTint="#FF3300"
-                app:cornerRadius="40dp" />
-
-            <Button
-                app:backgroundTint="#FF3300"
-
-                android:id="@+id/afternoon_button"
+                android:id="@+id/study_time_text"
                 android:layout_width="wrap_content"
-                android:layout_height="80dp"
-                android:text="Afternoon"
-                android:textSize="15dp"
-                app:cornerRadius="40dp" />
-
-            <Button
-                app:backgroundTint="#FF3300"
-
-                android:id="@+id/night_button"
-                android:layout_width="134dp"
-                android:layout_height="80dp"
-                android:text="Night"
-                android:textSize="15dp"
-                app:cornerRadius="40dp" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal">
-
-            <TextView
-                android:id="@+id/food_nearby"
-                android:layout_width="140dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="15dp"
-                android:layout_weight="1"
+                android:layout_marginBottom="8dp"
                 android:fontFamily="sans-serif-light"
-                android:lineSpacingExtra="16sp"
+                android:text="Study Time"
+                android:textSize="20sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginBottom="16dp">
+
+                <Button
+                    android:id="@+id/morning_button"
+                    android:layout_width="0dp"
+                    android:layout_height="60dp"
+                    android:layout_weight="1"
+                    android:layout_margin="6dp"
+                    android:text="Morning"
+                    android:textSize="14sp"
+                    app:backgroundTint="#FF3300" />
+
+                <Button
+                    android:id="@+id/afternoon_button"
+                    android:layout_width="0dp"
+                    android:layout_height="60dp"
+                    android:layout_weight="1"
+                    android:layout_margin="6dp"
+                    android:text="Afternoon"
+                    android:textSize="13sp"
+                    app:backgroundTint="#FF3300" />
+
+                <Button
+                    android:id="@+id/night_button"
+                    android:layout_width="0dp"
+                    android:layout_height="60dp"
+                    android:layout_weight="1"
+                    android:layout_margin="6dp"
+                    android:text="Night"
+                    android:textSize="14sp"
+                    app:backgroundTint="#FF3300" />
+            </LinearLayout>
+
+            <!-- Food Nearby Section -->
+            <TextView
+                android:id="@+id/food_nearby_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:fontFamily="sans-serif-light"
                 android:text="Food Nearby"
-                android:textSize="20sp"
-                android:typeface="sans"
-                app:backgroundTint="#FF3300" />
-        </LinearLayout>
+                android:textSize="20sp" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal">
-
-            <Button
-                app:backgroundTint="#FF3300"
-                android:id="@+id/vending_machine_button"
-                android:layout_width="131dp"
-                android:layout_height="match_parent"
-                android:layout_marginLeft="15dp"
-                android:text="Vending Machines"
-                android:textSize="15dp"
-                app:cornerRadius="40dp" />
-
-            <Button
-                app:backgroundTint="#FF3300"
-                android:id="@+id/cafes_button"
-                android:layout_width="116dp"
-                android:layout_height="80dp"
-                android:text="Cafes"
-                android:textSize="15dp"
-                app:cornerRadius="40dp" />
-
-            <Button
-                app:backgroundTint="#FF3300"
-                android:id="@+id/food_truck_button"
-                android:layout_width="134dp"
-                android:layout_height="80dp"
-                android:text="Food Trucks"
-                android:textSize="15dp"
-                app:cornerRadius="40dp" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal">
-
-            <TextView
-                android:id="@+id/room_type"
-
-                android:layout_width="140dp"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="15dp"
-                android:layout_marginBottom="10dp"
-                android:layout_weight="1"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginBottom="16dp">
+
+                <Button
+                    android:id="@+id/vending_machine_button"
+                    android:layout_width="0dp"
+                    android:layout_height="60dp"
+                    android:layout_weight="1"
+                    android:layout_margin="6dp"
+                    android:text="Vending Machines"
+                    android:textSize="12sp"
+                    app:backgroundTint="#FF3300" />
+
+                <Button
+                    android:id="@+id/cafes_button"
+                    android:layout_width="0dp"
+                    android:layout_height="60dp"
+                    android:layout_weight="1"
+                    android:layout_margin="6dp"
+                    android:text="Cafes"
+                    android:textSize="14sp"
+                    app:backgroundTint="#FF3300" />
+
+                <Button
+                    android:id="@+id/food_truck_button"
+                    android:layout_width="0dp"
+                    android:layout_height="60dp"
+                    android:layout_weight="1"
+                    android:layout_margin="6dp"
+                    android:text="Food Trucks"
+                    android:textSize="14sp"
+                    app:backgroundTint="#FF3300" />
+            </LinearLayout>
+
+            <!-- Room Type Section -->
+            <TextView
+                android:id="@+id/room_type_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
                 android:fontFamily="sans-serif-light"
-                android:lineSpacingExtra="16sp"
                 android:text="Room Type"
-                android:textSize="20sp"
-                android:typeface="sans"
-                app:backgroundTint="#FF3300" />
+                android:textSize="20sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginBottom="16dp">
+
+                <Button
+                    android:id="@+id/private_room_button"
+                    android:layout_width="0dp"
+                    android:layout_height="60dp"
+                    android:layout_weight="1"
+                    android:layout_margin="6dp"
+                    android:text="Private Room"
+                    android:textSize="14sp"
+                    app:backgroundTint="#FF3300" />
+
+                <Button
+                    android:id="@+id/big_tables_button"
+                    android:layout_width="0dp"
+                    android:layout_height="60dp"
+                    android:layout_weight="1"
+                    android:layout_margin="6dp"
+                    android:text="Big Tables"
+                    android:textSize="14sp"
+                    app:backgroundTint="#FF3300" />
+
+                <Button
+                    android:id="@+id/small_tables_button"
+                    android:layout_width="0dp"
+                    android:layout_height="60dp"
+                    android:layout_weight="1"
+                    android:layout_margin="6dp"
+                    android:text="Small Tables"
+                    android:textSize="14sp"
+                    app:backgroundTint="#FF3300" />
+            </LinearLayout>
         </LinearLayout>
+    </ScrollView>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal">
-
-            <Button
-                app:backgroundTint="#FF3300"
-                android:id="@+id/private_room_button"
-                android:layout_width="131dp"
-                android:layout_height="match_parent"
-                android:layout_marginLeft="15dp"
-                android:text="Private Room"
-                android:textSize="15dp"
-                app:cornerRadius="40dp" />
-
-            <Button
-                app:backgroundTint="#FF3300"
-                android:id="@+id/big_tables_button"
-                android:layout_width="116dp"
-                android:layout_height="80dp"
-                android:text="Big Tables"
-                android:textSize="15dp"
-                app:cornerRadius="40dp" />
-
-            <Button
-                app:backgroundTint="#FF3300"
-                android:id="@+id/small_tables_button"
-                android:layout_width="134dp"
-                android:layout_height="80dp"
-                android:text="Small Tables"
-                android:textSize="15dp"
-                app:cornerRadius="40dp" />
-        </LinearLayout>
-
-    </LinearLayout>
-
-</LinearLayout>
-
+    <!-- Save Button -->
     <Button
-        android:id="@+id/doneButton"
-        android:layout_width="match_parent"
+        android:id="@+id/createUserButton"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Done"
+        android:text="Save"
         android:layout_margin="16dp"
+        android:backgroundTint="@color/pressedRed"
+        android:textColor="@color/pressedWhite"
         android:textSize="18sp"
-        android:backgroundTint="#FF3300"
-        android:textColor="#FFFFFF"
-        android:layout_gravity="center_horizontal" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
+
+

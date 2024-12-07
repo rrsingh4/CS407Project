@@ -4,6 +4,8 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
+import android.widget.SeekBar
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -50,6 +52,22 @@ class PreferencesActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_preferences)
 
+        // SeekBar for mile radius preference
+        val seekBarText = findViewById<TextView>(R.id.progressNum)
+        val mileRadiusSeekBar = findViewById<SeekBar>(R.id.seekBar2)
+        mileRadiusSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                // Save the progress to Firebase
+                seekBarText.text = "$progress miles"
+
+                // Save the progress to Firebase
+
+                userPreferencesRef.child("mileRadius").setValue(progress)
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        })
 
 //create color change functionality (referenced generative AI to help with this)
 
@@ -72,6 +90,8 @@ class PreferencesActivity : AppCompatActivity() {
         val buttonStates = mutableMapOf<Int, Boolean>().apply {
             buttonIds.forEach { this[it] = false }
         }
+
+
         //loop through each button ID, find the button, and set an OnClickListener
         buttonIds.forEach { id ->
             val button = findViewById<Button>(id)
@@ -112,7 +132,7 @@ class PreferencesActivity : AppCompatActivity() {
             }
         }
         //button that sends user to the next activity
-        val doneButton = findViewById<Button>(R.id.doneButton)
+        val doneButton = findViewById<Button>(R.id.createUserButton)
         doneButton.setOnClickListener {
             val intent = Intent(this, MapActivity::class.java)
             startActivity(intent)
