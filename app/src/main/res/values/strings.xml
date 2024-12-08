@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">BadgerStudy</string>
     <string name="back_to_map">Back to Map</string>
+    <string name="add_to_favorites">Add to Favorites</string>
 
 </resources>

@@ -2,50 +2,98 @@ package com.cs407.badgerstudy
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Toast
+import android.widget.Button
+import android.widget.LinearLayout
+import android.widget.ScrollView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.cs407.badgerstudy.FavoritesAdapter
 
 class FavoritesActivity : AppCompatActivity() {
 
     private lateinit var favoritesRecyclerView: RecyclerView
+    private lateinit var backToMapButton: Button
+    private val favoritesList = mutableListOf<Favorite>()
+    private val db = FirebaseFirestore.getInstance()
+    private val userId = FirebaseAuth.getInstance().currentUser?.uid
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_favorites)
 
-        // Setup RecyclerView
-        favoritesRecyclerView = findViewById(R.id.favoritesRecyclerView)
-        favoritesRecyclerView.layoutManager = LinearLayoutManager(this)
-
-        // Initialize BottomNavigationView
-        val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottom_navigation)
-        bottomNavigationView.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.nav_home -> {
-                    // Navigate to MapActivity
-                    val intent = Intent(this, MapActivity::class.java)
-                    startActivity(intent)
-                    true
-                }
-                R.id.nav_favorites -> {
-                    // Stay on current activity
-                    true
-                }
-                R.id.nav_settings -> {
-                    // Navigate to SettingsActivity
-                    val intent = Intent(this, SettingsActivity::class.java)
-                    startActivity(intent)
-                    true
-                }
-                else -> false
-            }
+        // Programmatically create the layout
+        val rootLayout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT
+            )
         }
 
-        // Highlight the current menu item
-        bottomNavigationView.selectedItemId = R.id.nav_favorites
+        // Create RecyclerView
+        favoritesRecyclerView = RecyclerView(this).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                0,
+                1f // Weight to occupy most of the screen
+            )
+            layoutManager = LinearLayoutManager(this@FavoritesActivity)
+        }
+        rootLayout.addView(favoritesRecyclerView)
+
+        // Create Back to Map Button
+        backToMapButton = Button(this).apply {
+            text = "Back to Map"
+            setOnClickListener {
+                val intent = Intent(this@FavoritesActivity, MapActivity::class.java)
+                startActivity(intent)
+                finish()
+            }
+        }
+        rootLayout.addView(backToMapButton)
+
+        setContentView(rootLayout)
+
+        // Load favorites
+        loadFavorites()
+    }
+
+    private fun loadFavorites() {
+        if (userId != null) {
+            db.collection("favorites")
+                .whereEqualTo("userId", userId)
+                .get()
+                .addOnSuccessListener { documents ->
+                    favoritesList.clear()
+                    for (document in documents) {
+                        val favorite = Favorite(
+                            id = document.id,
+                            locationName = document.getString("locationName") ?: "",
+                            latitude = document.getDouble("latitude") ?: 0.0,
+                            longitude = document.getDouble("longitude") ?: 0.0
+                        )
+                        favoritesList.add(favorite)
+                    }
+                    favoritesRecyclerView.adapter = FavoritesAdapter(favoritesList) { favorite ->
+                        removeFavorite(favorite)
+                    }
+                }
+                .addOnFailureListener {
+                    // Handle failure to load favorites
+                }
+        }
+    }
+
+    private fun removeFavorite(favorite: Favorite) {
+        db.collection("favorites").document(favorite.id).delete()
+            .addOnSuccessListener {
+                favoritesList.remove(favorite)
+                favoritesRecyclerView.adapter?.notifyDataSetChanged()
+            }
     }
 }
+
+
 
