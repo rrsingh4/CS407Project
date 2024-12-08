@@ -25,8 +25,8 @@ class LoginActivity : AppCompatActivity() {
         // Apply button colors and states
         val buttons = arrayOf(loginButton, createUserButton)
         buttons.forEach { button ->
-            button.setBackgroundColor(ContextCompat.getColor(this, R.color.fadedRed))
-            button.setTextColor(ContextCompat.getColor(this, R.color.fadedWhite))
+            button.setBackgroundColor(ContextCompat.getColor(this, R.color.pressedRed))
+            button.setTextColor(ContextCompat.getColor(this, R.color.pressedWhite))
 
             button.setOnClickListener {
                 // Toggle button state colors
@@ -38,8 +38,8 @@ class LoginActivity : AppCompatActivity() {
                     button.setBackgroundColor(ContextCompat.getColor(this, R.color.pressedRed))
                     button.setTextColor(ContextCompat.getColor(this, R.color.pressedWhite))
                 } else {
-                    button.setBackgroundColor(ContextCompat.getColor(this, R.color.fadedRed))
-                    button.setTextColor(ContextCompat.getColor(this, R.color.fadedWhite))
+                    button.setBackgroundColor(ContextCompat.getColor(this, R.color.pressedRed))
+                    button.setTextColor(ContextCompat.getColor(this, R.color.pressedWhite))
                 }
             }
         }
