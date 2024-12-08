@@ -38,7 +38,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
         poiNameTextView = findViewById(R.id.poi_name)
         poiInfoBlock.visibility = View.GONE
 
-        // Handle bottom navigation
+        // Handle bottom navigation!
         val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottom_navigation)
         bottomNavigationView.setOnItemSelectedListener { item ->
             when (item.itemId) {
