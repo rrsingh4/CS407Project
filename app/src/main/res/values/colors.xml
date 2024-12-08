@@ -5,4 +5,5 @@
     <color name="pressedRed">#FF3300</color>
     <color name="fadedRed">#b33229</color>
     <color name="fadedWhite">#949392</color>
+    <color name="white">#FFFFFF</color>
 </resources>

@@ -4,7 +4,17 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="16dp"
-    android:background="@color/fadedWhite">
+    android:gravity="center"
+    android:background="@color/white">
+
+    <!-- Logo -->
+    <ImageView
+        android:id="@+id/logoImageView"
+        android:layout_width="250dp"
+        android:layout_height="250dp"
+        android:layout_marginBottom="24dp"
+        android:contentDescription="App Logo"
+        android:src="@drawable/badger_study" />
 
     <!-- Username Input -->
     <EditText
@@ -35,7 +45,7 @@
         android:layout_height="wrap_content"
         android:text="Login"
         android:layout_marginBottom="12dp"
-        android:backgroundTint="@color/fadedRed"
+        android:backgroundTint="@color/pressedRed"
         android:textColor="@color/fadedWhite" />
 
     <!-- Save User Button -->
@@ -43,7 +53,7 @@
         android:id="@+id/createUserButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:backgroundTint="@color/fadedRed"
+        android:backgroundTint="@color/pressedRed"
         android:text="Create New User"
         android:textColor="@color/fadedWhite" />
 
