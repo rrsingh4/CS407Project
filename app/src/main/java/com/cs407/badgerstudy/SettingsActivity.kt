@@ -104,7 +104,8 @@ class SettingsActivity : AppCompatActivity() {
                     true
                 }
                 R.id.nav_favorites -> {
-                    Toast.makeText(this, "Favorites clicked!", Toast.LENGTH_SHORT).show()
+                    val intent = Intent(this, FavoritesActivity::class.java)
+                    startActivity(intent)
                     true
                 }
                 R.id.nav_settings -> {
