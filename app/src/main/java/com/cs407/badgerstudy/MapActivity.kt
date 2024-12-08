@@ -86,5 +86,3 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
         poiNameTextView.text = name ?: "Unknown Location"
     }
 }
-
-

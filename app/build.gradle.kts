@@ -64,4 +64,5 @@ dependencies {
     implementation ("com.google.firebase:firebase-firestore")
     // Realtime Database
     implementation ("com.google.firebase:firebase-database:20.3.3")
+    implementation ("com.google.android.libraries.places:places:4.2.0")
 }
