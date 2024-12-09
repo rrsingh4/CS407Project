@@ -18,6 +18,8 @@ import com.google.android.gms.maps.model.*
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.net.FetchPhotoRequest
+import com.google.android.libraries.places.api.net.FetchPlaceRequest
+import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener
 import kotlinx.coroutines.CoroutineScope
@@ -33,14 +35,15 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var mMap: GoogleMap
     private lateinit var poiInfoBlock: View
     private lateinit var poiNameTextView: TextView
-    private lateinit var placesClient: com.google.android.libraries.places.api.net.PlacesClient
+    private lateinit var placesClient: PlacesClient
     private var currentMarker: Marker? = null
     private var currentPolyline: Polyline? = null
     private var userLocation: LatLng? = null
 
     companion object {
         private const val LOCATION_PERMISSION_REQUEST_CODE = 1
-        private const val MAPS_API_KEY = "AIzaSyDKkP9EHuCGUKAP3f5X4U5syYcXbzDbbho" // Replace with your actual API key
+        private const val MAPS_API_KEY = "YOUR_API_KEY" // Replace with your actual API key
+        private const val TAG = "MapActivity"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -72,7 +75,9 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
         mMap.mapType = GoogleMap.MAP_TYPE_NORMAL
         panToCurrentLocation()
 
+        // Handle POI clicks
         mMap.setOnPoiClickListener { poi ->
+            Log.d(TAG, "POI clicked: ${poi.name}")
             fetchPlaceDetails(poi.placeId ?: "", poi.latLng, poi.name)
             fetchAndDrawRoute(userLocation, poi.latLng, "driving")
         }
@@ -91,6 +96,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
         autocompleteFragment.setOnPlaceSelectedListener(object : PlaceSelectionListener {
             override fun onPlaceSelected(place: Place) {
                 place.latLng?.let {
+                    Log.d(TAG, "Place selected: ${place.name}")
                     mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(it, 15f))
                     showPlaceInfo(place)
                     fetchAndDrawRoute(userLocation, it, "driving")
@@ -99,13 +105,19 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
             }
 
             override fun onError(status: com.google.android.gms.common.api.Status) {
+                Log.e(TAG, "Error selecting place: ${status.statusMessage}")
                 Toast.makeText(this@MapActivity, "Error: ${status.statusMessage}", Toast.LENGTH_SHORT).show()
             }
         })
     }
 
     private fun fetchPlaceDetails(placeId: String, latLng: LatLng?, name: String?) {
-        val request = com.google.android.libraries.places.api.net.FetchPlaceRequest.newInstance(
+        if (placeId.isEmpty()) {
+            showFallbackPlaceInfo(latLng, name)
+            return
+        }
+
+        val request = FetchPlaceRequest.newInstance(
             placeId,
             listOf(
                 Place.Field.NAME, Place.Field.LAT_LNG,
@@ -116,9 +128,11 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
 
         placesClient.fetchPlace(request).addOnSuccessListener { response ->
             val place = response.place
+            Log.d(TAG, "Place details fetched: ${place.name}")
             showPlaceInfo(place)
             latLng?.let { moveMarker(it, place.name) }
         }.addOnFailureListener {
+            Log.e(TAG, "Error fetching place details: ${it.message}")
             showFallbackPlaceInfo(latLng, name)
         }
     }
@@ -138,31 +152,20 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
         poiInfoBlock.visibility = View.VISIBLE
         poiNameTextView.text = place.name ?: "Unknown Location"
 
-        val ratingTextView = findViewById<TextView>(R.id.poi_rating)
-        ratingTextView.text = "Rating: ${place.rating?.toString() ?: "N/A"}"
-
-        val userRatingsTextView = findViewById<TextView>(R.id.poi_user_ratings)
-        userRatingsTextView.text = "User Reviews: ${place.userRatingsTotal ?: 0}"
-
-        val hoursTextView = findViewById<TextView>(R.id.poi_hours)
-        hoursTextView.text = if (place.openingHours != null) {
-            "Opening Hours:\n${place.openingHours?.weekdayText?.joinToString("\n")}"
-        } else {
-            "Opening Hours: Not Available"
-        }
+        findViewById<TextView>(R.id.poi_rating).text = "Rating: ${place.rating ?: "N/A"}"
+        findViewById<TextView>(R.id.poi_user_ratings).text = "User Reviews: ${place.userRatingsTotal ?: 0}"
+        findViewById<TextView>(R.id.poi_hours).text =
+            place.openingHours?.weekdayText?.joinToString("\n") ?: "Opening Hours: Not Available"
 
         val photoImageView = findViewById<ImageView>(R.id.poi_photo)
         if (!place.photoMetadatas.isNullOrEmpty()) {
-            val photoRequest = FetchPhotoRequest.builder(place.photoMetadatas!![0])
-                .setMaxWidth(500)
-                .setMaxHeight(500)
-                .build()
-
+            val photoRequest = FetchPhotoRequest.builder(place.photoMetadatas!![0]).build()
             placesClient.fetchPhoto(photoRequest)
                 .addOnSuccessListener { response ->
                     photoImageView.setImageBitmap(response.bitmap)
                 }
                 .addOnFailureListener {
+                    Log.e(TAG, "Error fetching photo: ${it.message}")
                     photoImageView.setImageResource(R.drawable.placeholder_image)
                 }
         } else {
@@ -173,9 +176,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
     private fun moveMarker(latLng: LatLng, title: String?) {
         currentMarker?.remove()
         currentMarker = mMap.addMarker(
-            MarkerOptions()
-                .position(latLng)
-                .title(title)
+            MarkerOptions().position(latLng).title(title)
         )
         currentMarker?.showInfoWindow()
     }
@@ -203,6 +204,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
+                    Log.e(TAG, "Error fetching route: ${e.message}")
                     Toast.makeText(this@MapActivity, "Error fetching route: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
             }
@@ -221,15 +223,13 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
 
                 currentPolyline?.remove()
                 currentPolyline = mMap.addPolyline(
-                    PolylineOptions()
-                        .addAll(decodedPath)
-                        .color(0xFF0000FF.toInt())
-                        .width(10f)
+                    PolylineOptions().addAll(decodedPath).color(0xFF0000FF.toInt()).width(10f)
                 )
             } else {
                 Toast.makeText(this, "No routes found!", Toast.LENGTH_SHORT).show()
             }
         } catch (e: Exception) {
+            Log.e(TAG, "Error parsing route: ${e.message}")
             Toast.makeText(this, "Error parsing route: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }

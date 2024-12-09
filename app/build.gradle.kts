@@ -3,7 +3,6 @@ plugins {
     alias(libs.plugins.kotlin.android)
     id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin") version "2.0.1"
     id("com.google.gms.google-services")
-
 }
 
 android {
@@ -44,13 +43,15 @@ android {
 }
 
 dependencies {
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.core.ktx) {
+        exclude(group = "com.intellij", module = "annotations")
+    }
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.places)
     implementation(libs.firebase.database.ktx)
+    implementation(libs.play.services.places)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -60,9 +61,16 @@ dependencies {
     implementation("com.google.maps.android:android-maps-utils:2.3.0")
     implementation("com.squareup.okhttp3:okhttp:4.9.3")
     implementation(platform("com.google.firebase:firebase-bom:33.6.0"))
-    implementation ("com.google.firebase:firebase-auth")
-    implementation ("com.google.firebase:firebase-firestore")
-    // Realtime Database
-    implementation ("com.google.firebase:firebase-database:20.3.3")
-    implementation ("com.google.android.libraries.places:places:4.2.0")
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-firestore")
+    implementation("com.google.firebase:firebase-database:20.3.3")
+    implementation("com.google.android.libraries.places:places:4.1.0")
 }
+
+// Force resolution to avoid duplicate classes
+configurations.all {
+    resolutionStrategy {
+        force("org.jetbrains:annotations:23.0.0")
+    }
+}
+
