@@ -182,8 +182,18 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
 
         findViewById<TextView>(R.id.poi_rating).text = "Rating: ${place.rating ?: "N/A"}"
         findViewById<TextView>(R.id.poi_user_ratings).text = "User Reviews: ${place.userRatingsTotal ?: 0}"
+
+        // Get the current day of the week
+        val calendar = java.util.Calendar.getInstance()
+        val dayOfWeek = calendar.get(java.util.Calendar.DAY_OF_WEEK)
+
+        // Adjust the index to map Sunday (1) -> 6 and Monday (2) -> 0
+        val adjustedIndex = if (dayOfWeek == 1) 6 else dayOfWeek - 2
+
+        val currentDayHours = place.openingHours?.weekdayText?.getOrNull(adjustedIndex)
+
         findViewById<TextView>(R.id.poi_hours).text =
-            place.openingHours?.weekdayText?.joinToString("\n") ?: "Opening Hours: Not Available"
+            currentDayHours ?: "Opening Hours: Not Available"
 
         val photoImageView = findViewById<ImageView>(R.id.poi_photo)
         if (!place.photoMetadatas.isNullOrEmpty()) {
@@ -200,6 +210,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
             photoImageView.setImageResource(R.drawable.placeholder_image)
         }
     }
+
 
     private fun moveMarker(latLng: LatLng, title: String?) {
         currentMarker?.remove()
