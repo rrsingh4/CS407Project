@@ -6,27 +6,43 @@
     android:layout_height="match_parent"
     android:padding="16dp">
 
-    <!-- Header for Favorites Page -->
-    <TextView
-        android:id="@+id/favoritesHeader"
+    <!-- Header for Favorites Page with Heart Icon -->
+    <LinearLayout
+        android:id="@+id/favoritesHeaderContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Favorites"
-        android:textColor="@color/pressedRed"
-        android:textSize="24sp"
-        android:textStyle="bold"
+        android:orientation="horizontal"
         android:gravity="center"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="16dp" />
+        android:layout_marginBottom="16dp">
+
+        <TextView
+            android:id="@+id/favoritesHeader"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Favorites"
+            android:textColor="@color/pressedRed"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:layout_marginEnd="8dp" />
+
+        <ImageView
+            android:id="@+id/favoritesHeartIcon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_heart"
+            android:contentDescription="@string/add_to_favorites" />
+    </LinearLayout>
 
     <!-- RecyclerView for displaying favorite locations -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/favoritesRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        app:layout_constraintTop_toBottomOf="@id/favoritesHeader"
+        app:layout_constraintTop_toBottomOf="@id/favoritesHeaderContainer"
         app:layout_constraintBottom_toTopOf="@id/bottom_navigation"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
@@ -40,4 +56,6 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
+
