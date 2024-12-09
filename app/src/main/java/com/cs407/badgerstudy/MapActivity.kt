@@ -1,6 +1,7 @@
 package com.cs407.badgerstudy
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
@@ -22,6 +23,7 @@ import com.google.android.libraries.places.api.net.FetchPlaceRequest
 import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -42,7 +44,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
 
     companion object {
         private const val LOCATION_PERMISSION_REQUEST_CODE = 1
-        private const val MAPS_API_KEY = "YOUR_API_KEY" // Replace with your actual API key
+        private const val MAPS_API_KEY = "AIzaSyDKkP9EHuCGUKAP3f5X4U5syYcXbzDbbho" // Replace with your actual API key
         private const val TAG = "MapActivity"
     }
 
@@ -64,6 +66,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
         poiInfoBlock.visibility = View.GONE
 
         setupSearchAutocomplete()
+        setupBottomNavigation()
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
@@ -109,6 +112,31 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
                 Toast.makeText(this@MapActivity, "Error: ${status.statusMessage}", Toast.LENGTH_SHORT).show()
             }
         })
+    }
+
+    private fun setupBottomNavigation() {
+        val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottom_navigation)
+        bottomNavigationView.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.nav_home -> {
+                    // Already on home, do nothing
+                    true
+                }
+                R.id.nav_favorites -> {
+                    // Navigate to Favorites
+                    val intent = Intent(this, FavoritesActivity::class.java)
+                    startActivity(intent)
+                    true
+                }
+                R.id.nav_settings -> {
+                    // Navigate to Settings
+                    val intent = Intent(this, SettingsActivity::class.java)
+                    startActivity(intent)
+                    true
+                }
+                else -> false
+            }
+        }
     }
 
     private fun fetchPlaceDetails(placeId: String, latLng: LatLng?, name: String?) {
