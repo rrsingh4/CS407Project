@@ -60,6 +60,7 @@ class FavoritesActivity : AppCompatActivity() {
         loadFavorites()
     }
 
+
     private fun setupBottomNavigation(bottomNavigationView: BottomNavigationView) {
         bottomNavigationView.setOnItemSelectedListener { item ->
             when (item.itemId) {

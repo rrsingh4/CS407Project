@@ -6,6 +6,26 @@
     android:layout_height="match_parent"
     android:padding="16dp">
 
+    <!-- RecyclerView for displaying favorite locations -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/favoritesRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/favoritesHeaderContainer"
+        app:layout_constraintBottom_toTopOf="@id/bottom_navigation"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Bottom Navigation View - same as settings -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:menu="@menu/bottom_navigation_menu"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
     <!-- Header for Favorites Page with Heart Icon -->
     <LinearLayout
         android:id="@+id/favoritesHeaderContainer"
@@ -22,7 +42,7 @@
             android:id="@+id/favoritesHeader"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Favorites"
+            android:text="Favorites "
             android:textColor="@color/pressedRed"
             android:textSize="24sp"
             android:textStyle="bold"
@@ -37,25 +57,7 @@
             android:contentDescription="@string/add_to_favorites" />
     </LinearLayout>
 
-    <!-- RecyclerView for displaying favorite locations -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/favoritesRecyclerView"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        app:layout_constraintTop_toBottomOf="@id/favoritesHeaderContainer"
-        app:layout_constraintBottom_toTopOf="@id/bottom_navigation"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <!-- Bottom Navigation View -->
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottom_navigation"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:menu="@menu/bottom_navigation_menu"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
 </androidx.constraintlayout.widget.ConstraintLayout>
+
+
 
