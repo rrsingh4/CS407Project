@@ -1,5 +1,6 @@
 package com.cs407.badgerstudy
 
+import android.app.AlertDialog
 import android.content.Intent
 import android.widget.Toast
 import android.os.Bundle
@@ -16,6 +17,15 @@ class LoginActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
+        fun showDialog(title: String, message: String) {
+            val builder = AlertDialog.Builder(this)
+            builder.setTitle(title)
+            builder.setMessage(message)
+            builder.setPositiveButton("OK") { dialog, _ ->
+                dialog.dismiss() // Dismiss the dialog when OK is clicked
+            }
+            builder.create().show()
+        }
         // Define UI elements
         val usernameEditText = findViewById<EditText>(R.id.usernameEditText)
         val passwordEditText = findViewById<EditText>(R.id.passwordEditText)
@@ -50,7 +60,7 @@ class LoginActivity : AppCompatActivity() {
             val password = passwordEditText.text.toString().trim()
 
             if (username.isEmpty() || password.isEmpty()) {
-                Toast.makeText(this, "Please fill in both fields", Toast.LENGTH_SHORT).show()
+                showDialog("Login Failed", "Please fill in both fields")
                 return@setOnClickListener
             }
             // Simulate login success for demonstration
@@ -60,11 +70,8 @@ class LoginActivity : AppCompatActivity() {
                     if (login.isSuccessful) {
                         val user = auth.currentUser
                         //Alert on success
-                        Toast.makeText(
-                            this,
-                            "Login Successful! Welcome ${username}",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        showDialog("Login Successful", "Welcome $username!")
+
 
                         val intent = Intent(this@LoginActivity, MapActivity::class.java)
                         intent.putExtra("username", username) // Pass username to the next activity
@@ -72,11 +79,8 @@ class LoginActivity : AppCompatActivity() {
                         finish()
 
                     } else {
-                        Toast.makeText(
-                            this,
-                            "Error Creating account. Please try again",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        showDialog("Error Logging In", "Please submit a valid email and password")
+
 
                     }
                 }
@@ -99,7 +103,7 @@ class LoginActivity : AppCompatActivity() {
                     if (login.isSuccessful) {
                         val user = auth.currentUser
                         //Alert on success
-                        Toast.makeText(this, "Account Successfully created. Welcome ${username}", Toast.LENGTH_SHORT).show()
+                        showDialog("Account Created", "Welcome $username!")
 
                         //move user to preferences screen
                         val intent = Intent(this@LoginActivity, PreferencesActivity::class.java)
@@ -109,11 +113,12 @@ class LoginActivity : AppCompatActivity() {
 
 
                     } else{
-                        Toast.makeText(this, "Error Creating account. Please try again", Toast.LENGTH_SHORT).show()
+                        showDialog("Error Creating Account", "Please submit a valid email")
 
                     }
 
                 }
+
         }
     }
 
