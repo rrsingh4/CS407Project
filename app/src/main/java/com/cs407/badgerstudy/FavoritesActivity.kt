@@ -8,13 +8,13 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.database.FirebaseDatabase
 
 class FavoritesActivity : AppCompatActivity() {
 
     private lateinit var favoritesRecyclerView: RecyclerView
     private val favoritesList = mutableListOf<Favorite>()
-    private val db = FirebaseFirestore.getInstance()
+    private val db = FirebaseDatabase.getInstance()
     private val userId = FirebaseAuth.getInstance().currentUser?.uid
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -60,7 +60,6 @@ class FavoritesActivity : AppCompatActivity() {
         loadFavorites()
     }
 
-
     private fun setupBottomNavigation(bottomNavigationView: BottomNavigationView) {
         bottomNavigationView.setOnItemSelectedListener { item ->
             when (item.itemId) {
@@ -87,19 +86,16 @@ class FavoritesActivity : AppCompatActivity() {
 
     private fun loadFavorites() {
         if (userId != null) {
-            db.collection("favorites")
-                .whereEqualTo("userId", userId)
-                .get()
-                .addOnSuccessListener { documents ->
+            // Fetch data from Realtime Database
+            val dbRef = db.getReference("users/$userId/favorites")
+            dbRef.get()
+                .addOnSuccessListener { snapshot ->
                     favoritesList.clear()
-                    for (document in documents) {
-                        val favorite = Favorite(
-                            id = document.id,
-                            locationName = document.getString("locationName") ?: "",
-                            latitude = document.getDouble("latitude") ?: 0.0,
-                            longitude = document.getDouble("longitude") ?: 0.0
-                        )
-                        favoritesList.add(favorite)
+                    for (child in snapshot.children) {
+                        val favorite = child.getValue(Favorite::class.java)
+                        if (favorite != null) {
+                            favoritesList.add(favorite)
+                        }
                     }
                     favoritesRecyclerView.adapter = FavoritesAdapter(favoritesList) { favorite ->
                         removeFavorite(favorite)
@@ -112,13 +108,13 @@ class FavoritesActivity : AppCompatActivity() {
     }
 
     private fun removeFavorite(favorite: Favorite) {
-        db.collection("favorites").document(favorite.id).delete()
-            .addOnSuccessListener {
-                favoritesList.remove(favorite)
-                favoritesRecyclerView.adapter?.notifyDataSetChanged()
-            }
+        if (userId != null) {
+            val dbRef = db.getReference("users/$userId/favorites")
+            dbRef.child(favorite.id).removeValue()
+                .addOnSuccessListener {
+                    favoritesList.remove(favorite)
+                    favoritesRecyclerView.adapter?.notifyDataSetChanged()
+                }
+        }
     }
 }
-
-
-
