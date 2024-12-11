@@ -2,20 +2,17 @@ package com.cs407.badgerstudy
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Button
 import android.widget.LinearLayout
-import android.widget.ScrollView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.cs407.badgerstudy.FavoritesAdapter
 
 class FavoritesActivity : AppCompatActivity() {
 
     private lateinit var favoritesRecyclerView: RecyclerView
-    private lateinit var backToMapButton: Button
     private val favoritesList = mutableListOf<Favorite>()
     private val db = FirebaseFirestore.getInstance()
     private val userId = FirebaseAuth.getInstance().currentUser?.uid
@@ -43,21 +40,49 @@ class FavoritesActivity : AppCompatActivity() {
         }
         rootLayout.addView(favoritesRecyclerView)
 
-        // Create Back to Map Button
-        backToMapButton = Button(this).apply {
-            text = "Back to Map"
-            setOnClickListener {
-                val intent = Intent(this@FavoritesActivity, MapActivity::class.java)
-                startActivity(intent)
-                finish()
-            }
+        // Create Bottom Navigation
+        val bottomNavigationView = BottomNavigationView(this).apply {
+            id = R.id.bottom_navigation
+            inflateMenu(R.menu.bottom_navigation_menu)
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
         }
-        rootLayout.addView(backToMapButton)
+        rootLayout.addView(bottomNavigationView)
 
         setContentView(rootLayout)
 
+        // Setup Bottom Navigation
+        setupBottomNavigation(bottomNavigationView)
+
         // Load favorites
         loadFavorites()
+    }
+
+
+    private fun setupBottomNavigation(bottomNavigationView: BottomNavigationView) {
+        bottomNavigationView.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.nav_home -> {
+                    // Navigate to MapActivity
+                    val intent = Intent(this, MapActivity::class.java)
+                    startActivity(intent)
+                    true
+                }
+                R.id.nav_favorites -> {
+                    // Already in FavoritesActivity, do nothing
+                    true
+                }
+                R.id.nav_settings -> {
+                    // Navigate to SettingsActivity
+                    val intent = Intent(this, SettingsActivity::class.java)
+                    startActivity(intent)
+                    true
+                }
+                else -> false
+            }
+        }
     }
 
     private fun loadFavorites() {
