@@ -3,6 +3,8 @@ package com.cs407.badgerstudy
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -24,6 +26,7 @@ import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.firebase.database.FirebaseDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -47,6 +50,52 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
         private const val MAPS_API_KEY = "AIzaSyDKkP9EHuCGUKAP3f5X4U5syYcXbzDbbho" // Replace with your actual API key
         private const val TAG = "MapActivity"
     }
+
+    private fun fetchStudyLocations(onSuccess: (List<Map<String, String>>) -> Unit) {
+        val dbRef = FirebaseDatabase.getInstance().getReference("Study locations")
+        dbRef.get().addOnSuccessListener { snapshot ->
+            val locations = snapshot.children.mapNotNull { it.value as? Map<String, String> }
+            onSuccess(locations)
+        }.addOnFailureListener {
+            Log.e(TAG, "Error fetching study locations: ${it.message}")
+            Toast.makeText(this, "Failed to load study locations.", Toast.LENGTH_SHORT).show()
+        }
+    }
+    private fun displayStudyLocationsOnMap(locations: List<Map<String, String>>) {
+        locations.forEach { location ->
+            val coordinates = location["Coordinates"]?.split(", ") ?: return@forEach
+            val latitude = coordinates[0].toDouble()
+            val longitude = coordinates[1].toDouble()
+
+            val name = location["Name of spot"] ?: "Unknown Spot"
+
+            // Create and add the marker with the custom icon
+            val markerOptions = MarkerOptions()
+                .position(LatLng(latitude, longitude))
+                .title(name)
+                .snippet("Environment: ${location["Environment"]}")
+                .icon(createCustomMarker())
+
+            mMap.addMarker(markerOptions)
+        }
+    }
+
+
+    private fun createCustomMarker(): BitmapDescriptor {
+        // Load the image from the drawable resource and scale it if needed
+        val bitmap = BitmapFactory.decodeResource(resources, R.drawable.study_mark)
+        val scaledBitmap = Bitmap.createScaledBitmap(bitmap, 100, 100, false)
+        return BitmapDescriptorFactory.fromBitmap(scaledBitmap)
+    }
+
+
+
+    private fun fetchAndShowStudyLocations() {
+        fetchStudyLocations { locations ->
+            displayStudyLocationsOnMap(locations)
+        }
+    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -77,6 +126,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
         }
         mMap.mapType = GoogleMap.MAP_TYPE_NORMAL
         panToCurrentLocation()
+        fetchAndShowStudyLocations()
 
         // Handle POI clicks
         mMap.setOnPoiClickListener { poi ->
