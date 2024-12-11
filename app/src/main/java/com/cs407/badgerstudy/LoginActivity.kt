@@ -79,6 +79,8 @@ class LoginActivity : AppCompatActivity() {
                         finish()
 
                     } else {
+                        Log.e("LoginActivity", "Error: ${login.exception?.message}")
+
                         showDialog("Error Logging In", "Please submit a valid email and password")
 
 
