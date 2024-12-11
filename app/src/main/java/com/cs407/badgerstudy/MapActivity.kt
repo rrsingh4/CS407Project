@@ -1,6 +1,7 @@
 package com.cs407.badgerstudy
 
 import android.Manifest
+import android.content.ContentValues.TAG
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -46,11 +47,29 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
     private var currentMarker: Marker? = null
     private var currentPolyline: Polyline? = null
     private var userLocation: LatLng? = null
+    private var favorites : List<Map<String, Any>>? = null
 
     companion object {
         private const val LOCATION_PERMISSION_REQUEST_CODE = 1
         private const val MAPS_API_KEY = "AIzaSyDKkP9EHuCGUKAP3f5X4U5syYcXbzDbbho" // Replace with your actual API key
         private const val TAG = "MapActivity"
+    }
+    private fun fetchUserFavorites(onSuccess: (List<Map<String, Any>>) -> Unit) {
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        if (currentUser == null) {
+            Toast.makeText(this, "User not logged in", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val userId = currentUser.uid
+        val dbRef = FirebaseDatabase.getInstance().getReference("users/$userId/favorites")
+        dbRef.get().addOnSuccessListener { snapshot ->
+            val favorites = snapshot.children.mapNotNull { it.value as? Map<String, Any> }
+            onSuccess(favorites)
+        }.addOnFailureListener {
+            Log.e(TAG, "Error fetching favorites: ${it.message}")
+            Toast.makeText(this, "Failed to load favorites.", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun fetchStudyLocations(onSuccess: (List<Map<String, String>>) -> Unit) {
@@ -172,6 +191,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
         setupBottomNavigation()
     }
 
+
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
         mMap.uiSettings.apply {
@@ -181,6 +201,13 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
         mMap.mapType = GoogleMap.MAP_TYPE_NORMAL
         panToCurrentLocation()
         fetchAndShowStudyLocations()
+
+        fetchUserFavorites { fetchUserFavorites { fetchedFavorites ->
+            favorites = fetchedFavorites
+            // Do something with the fetched favorites if needed
+            Log.d(TAG, "Fetched favorites: $favorites")
+        } }
+
 
         // Handle POI clicks
         mMap.setOnPoiClickListener { poi ->
