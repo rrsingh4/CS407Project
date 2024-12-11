@@ -8,6 +8,7 @@ import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
@@ -34,6 +35,7 @@ import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
+import com.google.firebase.auth.FirebaseAuth
 
 class MapActivity : AppCompatActivity(), OnMapReadyCallback {
 
@@ -61,6 +63,60 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
             Toast.makeText(this, "Failed to load study locations.", Toast.LENGTH_SHORT).show()
         }
     }
+
+
+    private fun fetchUserPreferences(userId: String, onSuccess: (Map<String, Boolean>) -> Unit) {
+        val dbRef = FirebaseDatabase.getInstance().getReference("users/$userId/preferences")
+        dbRef.get().addOnSuccessListener { snapshot ->
+            val preferences = snapshot.value as? Map<String, Boolean> ?: emptyMap()
+            onSuccess(preferences)
+        }.addOnFailureListener {
+            Log.e(TAG, "Error fetching user preferences: ${it.message}")
+            Toast.makeText(this, "Failed to load user preferences.", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun fetchAndShowFilteredStudyLocations() {
+        // Get the current user ID from Firebase Auth
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        if (currentUser == null) {
+            Toast.makeText(this, "User not logged in", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val userId = currentUser.uid
+
+        fetchUserPreferences(userId) { preferences ->
+            fetchStudyLocations { locations ->
+                // Filter locations based on preferences
+                val filteredLocations = locations.filter { location ->
+                    val matches = mutableListOf<Boolean>()
+                    location["Environment"]?.let {
+                        matches.add(preferences["Collab Friendly"] == true && it.contains("Collaboration Friendly"))
+                        matches.add(preferences["Good View"] == true && it.contains("Good view"))
+                    }
+                    location["Food Nearby"]?.let {
+                        matches.add(preferences["Food Trucks"] == true && it.contains("Food Trucks"))
+                    }
+                    location["Room Type"]?.let {
+                        matches.add(preferences["Big Tables"] == true && it.contains("Big Tables"))
+                        matches.add(preferences["Small Tables"] == true && it.contains("Small Tables"))
+                    }
+                    location["Study Time"]?.let {
+                        matches.add(preferences["Morning"] == true && it.contains("Morning"))
+                        matches.add(preferences["Afternoon"] == true && it.contains("Afternoon"))
+                        matches.add(preferences["Night"] == true && it.contains("Night"))
+                    }
+                    matches.any { it }
+                }
+
+                displayStudyLocationsOnMap(filteredLocations)
+            }
+        }
+    }
+
+
+
+
     private fun displayStudyLocationsOnMap(locations: List<Map<String, String>>) {
         locations.forEach { location ->
             val coordinates = location["Coordinates"]?.split(", ") ?: return@forEach
@@ -68,8 +124,6 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
             val longitude = coordinates[1].toDouble()
 
             val name = location["Name of spot"] ?: "Unknown Spot"
-
-            // Create and add the marker with the custom icon
             val markerOptions = MarkerOptions()
                 .position(LatLng(latitude, longitude))
                 .title(name)
@@ -232,7 +286,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
 
         findViewById<TextView>(R.id.poi_rating).text = "Rating: ${place.rating ?: "N/A"}"
         findViewById<TextView>(R.id.poi_user_ratings).text = "User Reviews: ${place.userRatingsTotal ?: 0}"
-
+        findViewById<Button>(R.id.add_to_favorites_button).visibility = View.VISIBLE
         // Get the current day of the week
         val calendar = java.util.Calendar.getInstance()
         val dayOfWeek = calendar.get(java.util.Calendar.DAY_OF_WEEK)
@@ -258,6 +312,36 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
                 }
         } else {
             photoImageView.setImageResource(R.drawable.placeholder_image)
+        }
+        place.latLng?.let { setupAddToFavoritesButton(place.name, it) }
+    }
+
+
+    private fun setupAddToFavoritesButton(placeName: String?, placeLatLng: LatLng?) {
+        val addToFavoritesButton = findViewById<Button>(R.id.add_to_favorites_button)
+        addToFavoritesButton.setOnClickListener {
+            val currentUser = FirebaseAuth.getInstance().currentUser
+            if (currentUser == null) {
+                Toast.makeText(this, "Please log in to add favorites.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            val userId = currentUser.uid
+            val dbRef = FirebaseDatabase.getInstance().getReference("users/$userId/favorites")
+
+            // Save location to the user's favorites
+            val favoriteLocation = hashMapOf(
+                "name" to (placeName ?: "Unknown Location"),
+                "latitude" to placeLatLng?.latitude,
+                "longitude" to placeLatLng?.longitude
+            )
+            dbRef.push().setValue(favoriteLocation)
+                .addOnSuccessListener {
+                    Toast.makeText(this, "Location added to favorites!", Toast.LENGTH_SHORT).show()
+                }
+                .addOnFailureListener {
+                    Toast.makeText(this, "Failed to add to favorites: ${it.message}", Toast.LENGTH_SHORT).show()
+                }
         }
     }
 
