@@ -5,7 +5,8 @@
     android:orientation="horizontal"
     android:background="@drawable/rounded_background"
     android:padding="8dp"
-    android:layout_marginBottom="8dp">
+    android:layout_marginBottom="8dp"
+    android:gravity="center_vertical">
 
     <TextView
         android:id="@+id/locationNameTextView"
@@ -16,7 +17,7 @@
         android:textColor="@color/pressedRed"
         android:textSize="16sp"
         android:textStyle="bold"
-        android:padding="8dp" />
+        android:paddingEnd="8dp" />
 
     <ImageView
         android:id="@+id/favoriteIcon"
@@ -26,4 +27,12 @@
         android:contentDescription="Favorite Icon"
         android:tint="@color/pressedRed"
         android:layout_gravity="center_vertical" />
+
+    <Button
+        android:id="@+id/removeButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Remove"
+        android:backgroundTint="@color/pressedRed"
+        android:textColor="@android:color/white" />
 </LinearLayout>

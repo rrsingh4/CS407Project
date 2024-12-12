@@ -9,6 +9,7 @@ import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
@@ -95,70 +96,85 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
+
     private fun fetchAndShowFilteredStudyLocations() {
-        // Get the current user ID from Firebase Auth
         val currentUser = FirebaseAuth.getInstance().currentUser
         if (currentUser == null) {
             Toast.makeText(this, "User not logged in", Toast.LENGTH_SHORT).show()
             return
         }
+
         val userId = currentUser.uid
 
+        // Fetch user preferences
         fetchUserPreferences(userId) { preferences ->
+            // Fetch all study locations
             fetchStudyLocations { locations ->
                 // Filter locations based on preferences
                 val filteredLocations = locations.filter { location ->
-                    val matches = mutableListOf<Boolean>()
-                    location["Environment"]?.let {
-                        matches.add(preferences["Collab Friendly"] == true && it.contains("Collaboration Friendly"))
-                        matches.add(preferences["Good View"] == true && it.contains("Good view"))
+                    val environment = location["Environment"]?.split(",")?.map { it.trim() } ?: emptyList()
+                    val foodNearby = location["Food Nearby"]?.split(",")?.map { it.trim() } ?: emptyList()
+                    val roomType = location["Room Type"]?.split(",")?.map { it.trim() } ?: emptyList()
+                    val studyTime = location["Study Time"]?.split(",")?.map { it.trim() } ?: emptyList()
+
+                    // Strict filtering for Environment
+                    val selectedEnvironments = mutableListOf<String>()
+                    if (preferences["Quiet Study"] == true) selectedEnvironments.add("Quiet Study")
+                    if (preferences["Collab Friendly"] == true) selectedEnvironments.add("Collaboration Friendly")
+                    if (preferences["Good View"] == true) selectedEnvironments.add("Good view")
+                    if (preferences["Cafes"] == true) selectedEnvironments.add("Cafes")
+
+                    // Match at least one environment preference (use `.any` instead of `.all`)
+                    val matchesEnvironment = if (selectedEnvironments.isNotEmpty()) {
+                        selectedEnvironments.any { environment.contains(it) }
+                    } else {
+                        true // Allow all environments if none selected
                     }
-                    location["Food Nearby"]?.let {
-                        matches.add(preferences["Food Trucks"] == true && it.contains("Food Trucks"))
-                    }
-                    location["Room Type"]?.let {
-                        matches.add(preferences["Big Tables"] == true && it.contains("Big Tables"))
-                        matches.add(preferences["Small Tables"] == true && it.contains("Small Tables"))
-                    }
-                    location["Study Time"]?.let {
-                        matches.add(preferences["Morning"] == true && it.contains("Morning"))
-                        matches.add(preferences["Afternoon"] == true && it.contains("Afternoon"))
-                        matches.add(preferences["Night"] == true && it.contains("Night"))
-                    }
-                    matches.any { it }
+
+                    // Loose filtering for other categories
+                    val matchesFoodNearby = preferences["Food Trucks"] == true && foodNearby.contains("Food Trucks") ||
+                            preferences["Vending Machines"] == true && foodNearby.contains("Vending Machines")
+
+                    val matchesRoomType = preferences["Big Tables"] == true && roomType.contains("Big Tables") ||
+                            preferences["Small Tables"] == true && roomType.contains("Small Tables") ||
+                            preferences["Private Room"] == true && roomType.contains("Private Rooms")
+
+                    val matchesStudyTime = preferences["Morning"] == true && studyTime.contains("Morning") ||
+                            preferences["Afternoon"] == true && studyTime.contains("Afternoon") ||
+                            preferences["Night"] == true && studyTime.contains("Night")
+
+                    // Combine strict environment filter with loose filters
+                    matchesEnvironment && (matchesFoodNearby || matchesRoomType || matchesStudyTime)
                 }
 
+                // Debugging log for filtered locations
+                Log.d("FilteredLocations", "Filtered locations: $filteredLocations")
+
+                // Clear existing markers from the map
+                mMap.clear()
+
+                // Display filtered locations on the map
                 displayStudyLocationsOnMap(filteredLocations)
             }
         }
     }
 
-
-
-
-    private fun displayStudyLocationsOnMap(locations: List<Map<String, String>>) {
-        locations.forEach { location ->
-            val coordinates = location["Coordinates"]?.split(", ") ?: return@forEach
-            val latitude = coordinates[0].toDouble()
-            val longitude = coordinates[1].toDouble()
-
-            val name = location["Name of spot"] ?: "Unknown Spot"
-            val markerOptions = MarkerOptions()
-                .position(LatLng(latitude, longitude))
-                .title(name)
-                .snippet("Environment: ${location["Environment"]}")
-                .icon(createCustomMarker())
-
-            mMap.addMarker(markerOptions)
-        }
+    override fun onResume() {
+        super.onResume()
+        // Re-fetch preferences and filtered locations when returning to this activity
+        fetchAndShowFilteredStudyLocations()
     }
 
 
     private fun createCustomMarker(): BitmapDescriptor {
-        // Load the image from the drawable resource and scale it if needed
-        val bitmap = BitmapFactory.decodeResource(resources, R.drawable.study_mark)
-        val scaledBitmap = Bitmap.createScaledBitmap(bitmap, 100, 100, false)
-        return BitmapDescriptorFactory.fromBitmap(scaledBitmap)
+        return try {
+            val bitmap = BitmapFactory.decodeResource(resources, R.drawable.study_mark)
+            val scaledBitmap = Bitmap.createScaledBitmap(bitmap, 100, 100, false)
+            BitmapDescriptorFactory.fromBitmap(scaledBitmap)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error creating custom marker: ${e.message}")
+            BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)
+        }
     }
 
 
@@ -174,22 +190,45 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_map)
 
+        // Initialize Places API
         if (!Places.isInitialized()) {
             Places.initialize(applicationContext, MAPS_API_KEY)
         }
-
         placesClient = Places.createClient(this)
 
+        // Retrieve location details passed via Intent
+        val locationName = intent.getStringExtra("location_name")
+        val latitude = intent.getDoubleExtra("latitude", 0.0)
+        val longitude = intent.getDoubleExtra("longitude", 0.0)
+
+        // Initialize map fragment
         val mapFragment = supportFragmentManager.findFragmentById(R.id.map_fragment) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
+        // Initialize POI information block
         poiInfoBlock = findViewById(R.id.poi_info_scroll)
         poiNameTextView = findViewById(R.id.poi_name)
         poiInfoBlock.visibility = View.GONE
 
+        // Set up search autocomplete
         setupSearchAutocomplete()
+
+        // Set up bottom navigation
         setupBottomNavigation()
+
+        // Handle location details passed via Intent
+        if (latitude != 0.0 && longitude != 0.0) {
+            val destination = LatLng(latitude, longitude)
+
+            // Postpone moving the map until it is fully initialized in onMapReady
+            mapFragment.getMapAsync { googleMap ->
+                googleMap.addMarker(MarkerOptions().position(destination).title(locationName))
+                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(destination, 15f))
+            }
+        }
     }
+
+
 
 
     override fun onMapReady(googleMap: GoogleMap) {
@@ -199,68 +238,261 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
             isMapToolbarEnabled = true
         }
         mMap.mapType = GoogleMap.MAP_TYPE_NORMAL
+
+        // Pan to the user's current location
         panToCurrentLocation()
-        fetchAndShowStudyLocations()
 
-        fetchUserFavorites { fetchUserFavorites { fetchedFavorites ->
-            favorites = fetchedFavorites
-            // Do something with the fetched favorites if needed
-            Log.d(TAG, "Fetched favorites: $favorites")
-        } }
+        // Fetch and display filtered study locations
+        fetchAndShowFilteredStudyLocations()
 
+        // Handle marker clicks dynamically
+        mMap.setOnMarkerClickListener { marker ->
+            handleMarkerClick(marker)
+            marker.showInfoWindow()
+            true
+        }
 
-        // Handle POI clicks
+        // Handle default POI clicks
         mMap.setOnPoiClickListener { poi ->
-            Log.d(TAG, "POI clicked: ${poi.name}")
-            fetchPlaceDetails(poi.placeId ?: "", poi.latLng, poi.name)
-            fetchAndDrawRoute(userLocation, poi.latLng, "driving")
+            handlePoiClick(poi)
+        }
+
+        mMap.setOnMapClickListener {
+            // Hide POI block and clear routes
+            poiInfoBlock.visibility = View.GONE
+            currentPolyline?.remove()
+            currentPolyline = null
         }
     }
 
+    private fun handlePoiClick(poi: PointOfInterest) {
+        val placeId = poi.placeId
+
+        // Fetch place details using the placeId
+        val request = FetchPlaceRequest.newInstance(
+            placeId,
+            listOf(
+                Place.Field.NAME,
+                Place.Field.ADDRESS,
+                Place.Field.RATING,
+                Place.Field.PHOTO_METADATAS,
+                Place.Field.USER_RATINGS_TOTAL,
+                Place.Field.OPENING_HOURS,
+                Place.Field.LAT_LNG
+            )
+        )
+
+        placesClient.fetchPlace(request).addOnSuccessListener { response ->
+            val place = response.place
+
+            // Show the place info
+            showPlaceInfo(place)
+
+            // Automatically draw a route to the POI
+            if (userLocation != null && place.latLng != null) {
+                fetchAndDrawRoute(userLocation!!, place.latLng!!, "walking")
+            } else {
+                Toast.makeText(this, "Unable to fetch your location or destination.", Toast.LENGTH_SHORT).show()
+            }
+        }.addOnFailureListener { exception ->
+            Log.e(TAG, "Error fetching place details: ${exception.message}")
+            Toast.makeText(this, "Failed to fetch details for ${poi.name}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+
+
+    private fun displayStudyLocationsOnMap(locations: List<Map<String, String>>) {
+        locations.forEach { location ->
+            val coordinates = location["Coordinates"]?.split(", ")?.map { it.trim() } ?: return@forEach
+            if (coordinates.size != 2) return@forEach
+
+            val latitude = coordinates[0].toDoubleOrNull() ?: return@forEach
+            val longitude = coordinates[1].toDoubleOrNull() ?: return@forEach
+
+            val name = location["Name of spot"] ?: "Unknown Spot"
+            val markerOptions = MarkerOptions()
+                .position(LatLng(latitude, longitude))
+                .title(name)
+                .icon(createCustomMarker())
+
+            val marker = mMap.addMarker(markerOptions)
+            marker?.tag = "study_location"
+        }
+    }
+
+    private fun handleMarkerClick(marker: Marker) {
+        val markerTitle = marker.title ?: "Unknown Location"
+        val markerPosition = marker.position
+
+        Log.d(TAG, "Marker clicked: $markerTitle at $markerPosition")
+
+        // Step 1: Attempt to fetch place details by title (fallback to searchPlaceByName if necessary)
+        searchPlaceByName(markerTitle) { place ->
+            if (place != null) {
+                // Step 2: Show place info in the POI info block
+                showPlaceInfo(place)
+
+                // Step 3: Draw a route to the marker's location
+                if (userLocation != null && place.latLng != null) {
+                    fetchAndDrawRoute(userLocation!!, place.latLng!!, "walking")
+                } else {
+                    Toast.makeText(
+                        this,
+                        "User location unavailable or invalid place details.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            } else {
+                // If the place couldn't be found
+                Toast.makeText(this, "Unable to find details for $markerTitle.", Toast.LENGTH_SHORT)
+                    .show()
+            }
+        }
+    }
+
+
+    private fun searchPlaceByName(placeName: String, callback: (Place?) -> Unit) {
+        val url = "https://maps.googleapis.com/maps/api/place/textsearch/json" +
+                "?query=${placeName.replace(" ", "+")}" +
+                "&key=$MAPS_API_KEY"
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val connection = URL(url).openConnection() as HttpURLConnection
+                connection.connect()
+                val response = connection.inputStream.bufferedReader().readText()
+                connection.disconnect()
+
+                val jsonObject = JSONObject(response)
+                val results = jsonObject.optJSONArray("results")
+                if (results != null && results.length() > 0) {
+                    val firstResult = results.getJSONObject(0)
+
+                    // Extract relevant fields
+                    val lat = firstResult.getJSONObject("geometry").getJSONObject("location").getDouble("lat")
+                    val lng = firstResult.getJSONObject("geometry").getJSONObject("location").getDouble("lng")
+                    val placeName = firstResult.getString("name")
+                    val rating = firstResult.optDouble("rating", 0.0).toFloat()
+                    val userRatingsTotal = firstResult.optInt("user_ratings_total", 0)
+                    val photoReference = if (firstResult.has("photos")) {
+                        firstResult.getJSONArray("photos").getJSONObject(0).getString("photo_reference")
+                    } else null
+
+                    // Build a simplified Place object with photo reference
+                    val place = Place.builder()
+                        .setName(placeName)
+                        .setLatLng(LatLng(lat, lng))
+                        .setRating(rating.toDouble())
+                        .setUserRatingsTotal(userRatingsTotal)
+                        .setAttributions(photoReference?.let { listOf(it) }) // Convert to List<String> or pass null
+                        .build()
+
+                    withContext(Dispatchers.Main) {
+                        callback(place)
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        callback(null)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error searching place by name: ${e.message}")
+                withContext(Dispatchers.Main) {
+                    callback(null)
+                }
+            }
+        }
+    }
+
+
     private fun setupSearchAutocomplete() {
-        val autocompleteFragment = supportFragmentManager.findFragmentById(R.id.autocomplete_fragment) as AutocompleteSupportFragment
+        val autocompleteFragment = supportFragmentManager.findFragmentById(R.id.autocomplete_fragment) as? AutocompleteSupportFragment
+        if (autocompleteFragment == null) {
+            Log.e(TAG, "Autocomplete fragment is null")
+            return
+        }
+
+        // Set fields to retrieve
         autocompleteFragment.setPlaceFields(
             listOf(
-                Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG,
-                Place.Field.RATING, Place.Field.PHOTO_METADATAS, Place.Field.USER_RATINGS_TOTAL,
+                Place.Field.ID,
+                Place.Field.NAME,
+                Place.Field.LAT_LNG,
+                Place.Field.RATING,
+                Place.Field.PHOTO_METADATAS,
+                Place.Field.USER_RATINGS_TOTAL,
                 Place.Field.OPENING_HOURS
             )
         )
 
+        // Listener for place selection
         autocompleteFragment.setOnPlaceSelectedListener(object : PlaceSelectionListener {
             override fun onPlaceSelected(place: Place) {
-                place.latLng?.let {
-                    Log.d(TAG, "Place selected: ${place.name}")
-                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(it, 15f))
-                    showPlaceInfo(place)
-                    fetchAndDrawRoute(userLocation, it, "driving")
-                    moveMarker(it, place.name)
+                val placeLatLng = place.latLng
+                if (placeLatLng == null) {
+                    Toast.makeText(this@MapActivity, "Invalid place selected", Toast.LENGTH_SHORT).show()
+                    return
                 }
+
+                Log.d(TAG, "Place selected: ${place.name}, Location: $placeLatLng")
+
+                // Move the camera to the selected place
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(placeLatLng, 15f))
+
+                // Show detailed info about the place
+                showPlaceInfo(place)
+
+                // Draw a route from the user's current location to the selected place
+                if (userLocation != null) {
+                    fetchAndDrawRoute(userLocation!!, placeLatLng, "walking")
+                } else {
+                    Toast.makeText(this@MapActivity, "Unable to fetch your location", Toast.LENGTH_SHORT).show()
+                }
+
+                // Add a marker for the selected place
+                moveMarker(placeLatLng, place.name)
             }
 
             override fun onError(status: com.google.android.gms.common.api.Status) {
                 Log.e(TAG, "Error selecting place: ${status.statusMessage}")
-                Toast.makeText(this@MapActivity, "Error: ${status.statusMessage}", Toast.LENGTH_SHORT).show()
             }
         })
+
+        // Handle search bar clearing by monitoring the AutocompleteFragment's view
+        val clearButton = (autocompleteFragment.view as? ViewGroup)?.findViewById<View>(
+            resources.getIdentifier("places_autocomplete_clear_button", "id", packageName)
+        )
+        clearButton?.setOnClickListener {
+            clearRouteAndPOI()
+        }
     }
+
+    private fun clearRouteAndPOI() {
+        currentPolyline?.remove()
+        currentPolyline = null
+        currentMarker?.remove()
+    }
+
+
 
     private fun setupBottomNavigation() {
         val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottom_navigation)
         bottomNavigationView.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_home -> {
-                    // Already on home, do nothing
+                    // Reload map data when returning to the home tab
+                    fetchAndShowFilteredStudyLocations()
                     true
                 }
                 R.id.nav_favorites -> {
-                    // Navigate to Favorites
+                    // Navigate to Favorites and ensure data is refreshed
                     val intent = Intent(this, FavoritesActivity::class.java)
                     startActivity(intent)
                     true
                 }
                 R.id.nav_settings -> {
-                    // Navigate to Settings
+                    // Navigate to Settings and ensure preferences update
                     val intent = Intent(this, SettingsActivity::class.java)
                     startActivity(intent)
                     true
@@ -269,6 +501,43 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
             }
         }
     }
+
+
+    private fun addGeneralPOIMarker(latLng: LatLng, name: String, placeId: String) {
+        val markerOptions = MarkerOptions()
+            .position(latLng)
+            .title(name)
+            .snippet(placeId) // Store Place ID in the snippet
+            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
+
+        val marker = mMap.addMarker(markerOptions)
+        marker?.tag = "general_poi" // Assign tag for general POIs
+    }
+
+    private fun searchStudyLocationAndRoute(locationName: String, markerPosition: LatLng) {
+        val request = FetchPlaceRequest.newInstance(
+            locationName,
+            listOf(
+                Place.Field.ID,
+                Place.Field.NAME,
+                Place.Field.LAT_LNG,
+                Place.Field.RATING,
+                Place.Field.PHOTO_METADATAS,
+                Place.Field.USER_RATINGS_TOTAL,
+                Place.Field.OPENING_HOURS
+            )
+        )
+
+        placesClient.fetchPlace(request).addOnSuccessListener { response ->
+            val place = response.place
+            showPlaceInfo(place) // Show place details in POI info block
+            fetchAndDrawRoute(markerPosition, place.latLng!!, "walking") // Draw route
+        }.addOnFailureListener { exception ->
+            Log.e(TAG, "Error fetching place details for $locationName: ${exception.message}")
+            Toast.makeText(this, "Failed to find $locationName.", Toast.LENGTH_SHORT).show()
+        }
+    }
+
 
     private fun fetchPlaceDetails(placeId: String, latLng: LatLng?, name: String?) {
         if (placeId.isEmpty()) {
@@ -327,6 +596,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
             currentDayHours ?: "Opening Hours: Not Available"
 
         val photoImageView = findViewById<ImageView>(R.id.poi_photo)
+        val photoReference = place.attributions
         if (!place.photoMetadatas.isNullOrEmpty()) {
             val photoRequest = FetchPhotoRequest.builder(place.photoMetadatas!![0]).build()
             placesClient.fetchPhoto(photoRequest)
@@ -346,29 +616,70 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private fun setupAddToFavoritesButton(placeName: String?, placeLatLng: LatLng?) {
         val addToFavoritesButton = findViewById<Button>(R.id.add_to_favorites_button)
-        addToFavoritesButton.setOnClickListener {
-            val currentUser = FirebaseAuth.getInstance().currentUser
-            if (currentUser == null) {
-                Toast.makeText(this, "Please log in to add favorites.", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
+        val currentUser = FirebaseAuth.getInstance().currentUser
+
+        if (currentUser == null) {
+            Toast.makeText(this, "Please log in to manage favorites.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val userId = currentUser.uid
+        val dbRef = FirebaseDatabase.getInstance().getReference("users/$userId/favorites")
+
+        // Fetch current favorites from Firebase
+        dbRef.get().addOnSuccessListener { snapshot ->
+            var isFavorite = false
+            var favoriteKey: String? = null
+
+            // Check if the current place is already a favorite
+            for (child in snapshot.children) {
+                val name = child.child("name").value as? String
+                if (name == placeName) {
+                    isFavorite = true
+                    favoriteKey = child.key
+                    break
+                }
             }
 
-            val userId = currentUser.uid
-            val dbRef = FirebaseDatabase.getInstance().getReference("users/$userId/favorites")
+            // Update the button text based on the favorite status
+            addToFavoritesButton.text = if (isFavorite) "Remove from Favorites" else "Add to Favorites"
 
-            // Save location to the user's favorites
-            val favoriteLocation = hashMapOf(
-                "name" to (placeName ?: "Unknown Location"),
-                "latitude" to placeLatLng?.latitude,
-                "longitude" to placeLatLng?.longitude
-            )
-            dbRef.push().setValue(favoriteLocation)
-                .addOnSuccessListener {
-                    Toast.makeText(this, "Location added to favorites!", Toast.LENGTH_SHORT).show()
+            // Set up button click listener
+            addToFavoritesButton.setOnClickListener {
+                if (isFavorite) {
+                    // Remove from favorites
+                    favoriteKey?.let {
+                        dbRef.child(it).removeValue()
+                            .addOnSuccessListener {
+                                Toast.makeText(this, "Removed from favorites", Toast.LENGTH_SHORT).show()
+                                isFavorite = false
+                                addToFavoritesButton.text = "Add to Favorites"
+                            }
+                            .addOnFailureListener { e ->
+                                Toast.makeText(this, "Failed to remove from favorites: ${e.message}", Toast.LENGTH_SHORT).show()
+                            }
+                    }
+                } else {
+                    // Add to favorites
+                    val favoriteLocation = mapOf(
+                        "name" to (placeName ?: "Unknown Location"),
+                        "latitude" to (placeLatLng?.latitude ?: 0.0),
+                        "longitude" to (placeLatLng?.longitude ?: 0.0)
+                    )
+
+                    dbRef.push().setValue(favoriteLocation)
+                        .addOnSuccessListener {
+                            Toast.makeText(this, "Added to favorites", Toast.LENGTH_SHORT).show()
+                            isFavorite = true
+                            addToFavoritesButton.text = "Remove from Favorites"
+                        }
+                        .addOnFailureListener { e ->
+                            Toast.makeText(this, "Failed to add to favorites: ${e.message}", Toast.LENGTH_SHORT).show()
+                        }
                 }
-                .addOnFailureListener {
-                    Toast.makeText(this, "Failed to add to favorites: ${it.message}", Toast.LENGTH_SHORT).show()
-                }
+            }
+        }.addOnFailureListener {
+            Toast.makeText(this, "Failed to fetch favorites: ${it.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -381,17 +692,17 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
         currentMarker?.showInfoWindow()
     }
 
-    private fun fetchAndDrawRoute(origin: LatLng?, destination: LatLng, travelMode: String) {
-        if (origin == null) {
-            Toast.makeText(this, "Current location not found", Toast.LENGTH_SHORT).show()
+    private fun fetchAndDrawRoute(origin: LatLng, destination: LatLng, travelMode: String = "walking") {
+        if (origin == destination) {
+            Toast.makeText(this, "You're already at the destination!", Toast.LENGTH_SHORT).show()
             return
         }
-
         val urlString = "https://maps.googleapis.com/maps/api/directions/json?" +
                 "origin=${origin.latitude},${origin.longitude}" +
                 "&destination=${destination.latitude},${destination.longitude}" +
                 "&mode=$travelMode" +
                 "&key=$MAPS_API_KEY"
+        Log.d(TAG, "Fetching route with URL: $urlString")
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -399,6 +710,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
                 connection.connect()
                 val response = connection.inputStream.bufferedReader().readText()
                 connection.disconnect()
+
                 withContext(Dispatchers.Main) {
                     parseAndDrawRoute(response)
                 }
@@ -414,25 +726,39 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
     private fun parseAndDrawRoute(jsonData: String) {
         try {
             val jsonObject = JSONObject(jsonData)
-            val routes = jsonObject.getJSONArray("routes")
-            if (routes.length() > 0) {
+            val routes = jsonObject.optJSONArray("routes")
+            if (routes != null && routes.length() > 0) {
                 val polyline = routes.getJSONObject(0)
                     .getJSONObject("overview_polyline")
                     .getString("points")
                 val decodedPath = decodePolyline(polyline)
 
+                // Clear the previous polyline if it exists
                 currentPolyline?.remove()
+
+                // Draw the new route
                 currentPolyline = mMap.addPolyline(
-                    PolylineOptions().addAll(decodedPath).color(0xFF0000FF.toInt()).width(10f)
+                    PolylineOptions()
+                        .addAll(decodedPath)
+                        .color(0xFF0000FF.toInt()) // Blue color
+                        .width(12f)
+                        .geodesic(true) // Smooth route
                 )
+
+                // Adjust the camera to show the route
+                val boundsBuilder = LatLngBounds.Builder()
+                decodedPath.forEach { boundsBuilder.include(it) }
+                val bounds = boundsBuilder.build()
+                mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100)) // Padding of 100
             } else {
-                Toast.makeText(this, "No routes found!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "No route found to the destination.", Toast.LENGTH_SHORT).show()
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error parsing route: ${e.message}")
             Toast.makeText(this, "Error parsing route: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
+
 
     private fun decodePolyline(encoded: String): List<LatLng> {
         val poly = ArrayList<LatLng>()
@@ -489,7 +815,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
             location?.let {
                 val currentLatLng = LatLng(it.latitude, it.longitude)
                 userLocation = currentLatLng
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15f))
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 17f))
                 mMap.addCircle(
                     CircleOptions()
                         .center(currentLatLng)

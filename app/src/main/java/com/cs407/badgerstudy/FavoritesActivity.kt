@@ -3,6 +3,7 @@ package com.cs407.badgerstudy
 import android.content.Intent
 import android.os.Bundle
 import android.widget.LinearLayout
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -60,6 +61,11 @@ class FavoritesActivity : AppCompatActivity() {
         loadFavorites()
     }
 
+    override fun onResume() {
+        super.onResume()
+        loadFavorites() // Reload the favorites list when the activity resumes
+    }
+
     private fun setupBottomNavigation(bottomNavigationView: BottomNavigationView) {
         bottomNavigationView.setOnItemSelectedListener { item ->
             when (item.itemId) {
@@ -86,8 +92,7 @@ class FavoritesActivity : AppCompatActivity() {
 
     private fun loadFavorites() {
         if (userId != null) {
-            // Fetch data from Realtime Database
-            val dbRef = db.getReference("users/$userId/favorites")
+            val dbRef = FirebaseDatabase.getInstance().getReference("users/$userId/favorites")
             dbRef.get()
                 .addOnSuccessListener { snapshot ->
                     favoritesList.clear()
@@ -97,15 +102,20 @@ class FavoritesActivity : AppCompatActivity() {
                             favoritesList.add(favorite)
                         }
                     }
-                    favoritesRecyclerView.adapter = FavoritesAdapter(favoritesList) { favorite ->
-                        removeFavorite(favorite)
-                    }
+                    favoritesRecyclerView.adapter = FavoritesAdapter(
+                        favoritesList,
+                        onRemove = { favorite -> removeFavorite(favorite) },
+                        onNavigate = { favorite -> navigateToLocation(favorite) }
+                    )
+                    favoritesRecyclerView.adapter?.notifyDataSetChanged()
                 }
                 .addOnFailureListener {
-                    // Handle failure to load favorites
+                    Toast.makeText(this, "Failed to load favorites", Toast.LENGTH_SHORT).show()
                 }
         }
     }
+
+
 
     private fun removeFavorite(favorite: Favorite) {
         if (userId != null) {
@@ -117,4 +127,15 @@ class FavoritesActivity : AppCompatActivity() {
                 }
         }
     }
+
+    private fun navigateToLocation(favorite: Favorite) {
+        // Navigate to the map and display route
+        val intent = Intent(this, MapActivity::class.java).apply {
+            putExtra("location_name", favorite.locationName)
+            putExtra("latitude", favorite.latitude)
+            putExtra("longitude", favorite.longitude)
+        }
+        startActivity(intent)
+    }
+
 }

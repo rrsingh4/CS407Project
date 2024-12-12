@@ -45,6 +45,7 @@
         android:layout_marginBottom="8dp"
         android:background="@drawable/rounded_background"
         android:elevation="8dp"
+        android:padding="16dp"
         android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@id/bottom_navigation"
         app:layout_constraintStart_toStartOf="parent"
@@ -54,57 +55,52 @@
             android:id="@+id/poi_info_block"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
+            android:orientation="vertical">
 
             <TextView
                 android:id="@+id/poi_name"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="POI Name"
-                android:textSize="16sp"
+                android:textSize="18sp"
                 android:textStyle="bold"
-                android:padding="4dp" />
+                android:paddingBottom="8dp" />
 
             <Button
                 android:id="@+id/add_to_favorites_button"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Add to Favorites"
-                android:layout_marginTop="8dp"
-                android:backgroundTint="@color/purple_500"
-                android:textColor="@android:color/white"
-                android:visibility="gone" />
-
+                android:layout_marginBottom="8dp" />
 
             <TextView
                 android:id="@+id/poi_rating"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Rating: N/A"
-                android:padding="4dp" />
+                android:paddingBottom="4dp" />
 
             <TextView
                 android:id="@+id/poi_user_ratings"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="User Reviews: 0"
-                android:padding="4dp" />
+                android:paddingBottom="4dp" />
 
             <TextView
                 android:id="@+id/poi_hours"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Opening Hours: Not Available"
-                android:padding="4dp" />
+                android:paddingBottom="8dp" />
 
             <ImageView
                 android:id="@+id/poi_photo"
                 android:layout_width="match_parent"
-                android:layout_height="150dp"
-                android:layout_marginTop="8dp"
+                android:layout_height="200dp"
                 android:scaleType="centerCrop"
-                android:src="@drawable/placeholder_image" />
+                android:src="@drawable/placeholder_image"
+                android:visibility="visible" />
         </LinearLayout>
     </ScrollView>
 
